@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="theme_options">
+        <item>@string/Light</item>
+        <item>@string/Dark</item>
+    </string-array>
+    <string-array name="theme_options_codes">
+        <item>light</item>
+        <item>dark</item>
+    </string-array>
+    <string-array name="languages">
+        <item>@string/lang_es</item>
+        <item>@string/lang_en</item>
+    </string-array>
+    <string-array name="languages_codes">
+        <item>es</item>
+        <item>en</item>
+    </string-array>
+</resources>

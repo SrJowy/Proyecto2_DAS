@@ -1,0 +1,55 @@
+<resources>
+    <string name="app_name" translatable="false">Pocket Routine</string>
+    <string name="sign_in">Sign In</string>
+    <string name="user_id">User:</string>
+    <string name="pass_id">Password</string>
+    <string name="mail" translatable="false">E-mail</string>
+    <string name="accept">Accept</string>
+    <string name="nav_open" translatable="false">Open</string>
+    <string name="nav_close" translatable="false">Close</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="main_routines">Routines</string>
+    <string name="Exercises">Exercises</string>
+    <string name="Settings">Settings</string>
+    <string name="Language">Language</string>
+    <string name="Theme">Theme</string>
+    <string name="msg_theme_title">Choose theme:</string>
+    <string name="Light">Light</string>
+    <string name="Dark">Dark</string>
+    <string name="Exit">Exit</string>
+    <string name="home">Home</string>
+    <string name="Logout">Logout</string>
+    <string name="num_reps">Num reps:</string>
+    <string name="num_series">Num series:</string>
+    <string name="kgs" translatable="false">KGs:</string>
+    <string name="more_info">More info</string>
+    <string name="add_routine">Add new routine</string>
+    <string name="routine_name">Routine name</string>
+    <string name="routine_des">Routine description</string>
+    <string name="save">Save</string>
+    <string name="val_error">Invalid name</string>
+    <string name="do_action_menu">Action menu</string>
+    <string name="remove">Remove</string>
+    <string name="exit">EXIT</string>
+    <string name="notif_title_alert">Alert</string>
+    <string name="notif_msg_alert">A routine has been removed</string>
+    <string name="notif_data_changes">Data changes</string>
+    <string name="add_exercise">Add exercises</string>
+    <string name="select_language">Select language:</string>
+    <string name="lang_es">Spanish</string>
+    <string name="lang_en">English</string>
+    <string name="sign_up">Sign up</string>
+    <string name="name">Name</string>
+    <string name="surname">Surname</string>
+    <string name="repeat_pass">Repeat password</string>
+    <string name="send">Send</string>
+    <string name="usr_msg">User length cannot be longer than 255 characters</string>
+    <string name="surname_msg">Surname length cannot be longer than 255 characters</string>
+    <string name="mail_msg">Write a valid e-mail</string>
+    <string name="pass_msg">Both passwords must have a minimum length of 8 characters and they must be equal</string>
+    <string name="success">SUCCESS</string>
+    <string name="msg_success">Sign up successful</string>
+    <string name="msg_sign_in">E-mail or password not correct</string>
+    <string name="msg_user_exists">User already registered</string>
+    <!-- TODO: Remove or change this placeholder text -->
+</resources>
