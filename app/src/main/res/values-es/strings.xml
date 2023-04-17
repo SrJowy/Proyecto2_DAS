@@ -46,4 +46,15 @@
     <string name="msg_success">Éxito al registrarse</string>
     <string name="msg_sign_in">E-mail o contraseña incorrectos</string>
     <string name="msg_user_exists">Usuario ya registrado</string>
+    <string name="error_server">Error de conexión con el servidor</string>
+    <string name="back">Atrás</string>
+    <string name="forward">Siguiente</string>
+    <string name="calendar">Calendario</string>
+    <string name="MON">LUN</string>
+    <string name="TU">MAR</string>
+    <string name="WED">MIE</string>
+    <string name="THU">JUE</string>
+    <string name="FRI">VIE</string>
+    <string name="SAT">SAB</string>
+    <string name="SUN">DOM</string>
 </resources>

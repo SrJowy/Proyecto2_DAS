@@ -11,11 +11,17 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
 
+import com.example.proyecto1_das.db.ExternalDB;
 import com.example.proyecto1_das.db.MyDB;
 import com.example.proyecto1_das.dialog.MessageDialog;
 import com.example.proyecto1_das.utils.FileUtils;
@@ -67,22 +73,43 @@ public class MainActivity extends AppCompatActivity {
             EditText etPassword = findViewById(R.id.editTextPassword);
             String password = etPassword.getText().toString();
 
-            MyDB dbManager = new MyDB(this);
-            boolean exists = dbManager.checkUsr(mail, password);
-            dbManager.close();
+            String[] keys =  new String[3];
+            Object[] params = new String[3];
+            keys[0] = "param";
+            keys[1] = "mail";
+            keys[2] =  "pass";
+            params[0] = "signIn";
+            params[1] = mail;
+            params[2] = password;
+            Data param = ExternalDB.createParam(keys, params);
+            OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
+            WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+                    .observe(this, workInfo -> {
+                        if (workInfo != null && workInfo.getState().isFinished()) {
+                            if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
+                                boolean success = workInfo.getOutputData().getBoolean("success", false);
 
-            if (exists) {
-                saveSession(mail);
+                                if (success) {
+                                    saveSession(mail);
 
-                Intent i = new Intent(this, RoutineActivity.class);
-                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK |
-                        Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(i);
-            } else {
-                MessageDialog d = new MessageDialog("ERROR",
-                        getString(R.string.msg_sign_in));
-                d.show(getSupportFragmentManager(), "errorDialog");
-            }
+                                    Intent i = new Intent(this, RoutineActivity.class);
+                                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK |
+                                            Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(i);
+                                } else {
+                                    MessageDialog d = new MessageDialog("ERROR",
+                                            getString(R.string.msg_sign_in));
+                                    d.show(getSupportFragmentManager(), "errorDialog");
+                                }
+                            } else {
+                                MessageDialog d = new MessageDialog("ERROR",
+                                        getString(R.string.error_server));
+                                d.show(getSupportFragmentManager(), "errorDialog");
+                            }
+
+                        }
+                    });
+            WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
 
         });
 

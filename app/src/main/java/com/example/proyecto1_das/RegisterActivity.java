@@ -1,17 +1,24 @@
 package com.example.proyecto1_das;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
+import com.example.proyecto1_das.db.ExternalDB;
 import com.example.proyecto1_das.db.MyDB;
 import com.example.proyecto1_das.dialog.MessageDialog;
 import com.example.proyecto1_das.utils.LocaleUtils;
 import com.example.proyecto1_das.utils.ThemeUtils;
 import com.example.proyecto1_das.utils.ValidationUtils;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -43,15 +50,35 @@ public class RegisterActivity extends AppCompatActivity {
             try {
                 ValidationUtils.validateUsr(new String[]{name, surname, mail, password,
                         repeatPass});
-                MyDB myDB = new MyDB(this);
-                if (myDB.userExistInDB(mail) == 1) {
-                    throw new Exception("exists");
-                }
-                myDB.insertUsr(mail, password, name, surname);
-                myDB.close();
-                Toast.makeText(this, getString(R.string.msg_success),
-                        Toast.LENGTH_LONG).show();
-                finish();
+
+                String[] keys =  new String[2];
+                Object[] params = new String[2];
+                keys[0] = "param";
+                keys[1] = "mail";
+                params[0] = "userExists";
+                params[1] = mail;
+                Data param = ExternalDB.createParam(keys, params);
+                OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
+                WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+                        .observe(this, workInfo -> {
+                            if (workInfo != null && workInfo.getState().isFinished()) {
+                                Integer count = workInfo.getOutputData().getInt("len", 0);
+                                Log.i("count", "onCreate: " + count);
+                                if (count == 1) {
+                                    MessageDialog d = new MessageDialog("ERROR", getString(R.string.msg_user_exists));
+                                    d.show(getSupportFragmentManager(), "errorDialog");
+                                } else {
+                                    MyDB myDB = new MyDB(this);
+
+                                    myDB.insertUsr(mail, password, name, surname, this);
+                                    myDB.close();
+                                    Toast.makeText(this, getString(R.string.msg_success),
+                                            Toast.LENGTH_LONG).show();
+                                    finish();
+                                }
+                            }
+                        });
+                WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
             } catch (Exception e) {
                 String message = "";
                 if ("usr".equals(e.getMessage())) {

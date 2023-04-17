@@ -7,11 +7,20 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
+
+import com.example.proyecto1_das.R;
 import com.example.proyecto1_das.data.Exercise;
 import com.example.proyecto1_das.data.Routine;
+import com.example.proyecto1_das.dialog.MessageDialog;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /*
  * Local database manager class
@@ -135,26 +144,33 @@ public class MyDB extends SQLiteOpenHelper {
         db.close();
     }
 
-    public void insertUsr(String usr, String pass, String name, String surname) {
-        SQLiteDatabase db = getWritableDatabase();
-        String sql = "INSERT INTO USERS (MAIL, PASSWORD, NAME, SURNAME) " +
-                "VALUES (?, ?, ?, ?)";
-        try {
-            db.execSQL(sql, new Object[]{usr, pass, name, surname});
-        } catch (SQLException e) {
-            Log.e("INSERT_ERROR", "insertUsr: That user already exists ", e);
-        }
-        db.close();
-    }
+    public void insertUsr(String usr, String pass, String name, String surname, AppCompatActivity act) {
+        String[] keys =  new String[5];
+        Object[] params = new String[5];
+        keys[0] = "param";
+        keys[1] = "usr";
+        keys[2] = "pass";
+        keys[3] = "name";
+        keys[4] = "surname";
+        params[0] = "signUp";
+        params[1] = usr;
+        params[2] = pass;
+        params[3] = name;
+        params[4] = surname;
 
-    public boolean checkUsr(String mail, String pass) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT * FROM USERS WHERE MAIL = ? AND PASSWORD = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{mail, pass});
-        boolean res = cursor.getCount() > 0;
-        cursor.close();
-        db.close();
-        return res;
+        Data param = ExternalDB.createParam(keys, params);
+        OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
+        WorkManager.getInstance(act).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+                .observe(act, workInfo -> {
+                    if (workInfo != null && workInfo.getState().isFinished()) {
+                        if (workInfo.getState() != WorkInfo.State.SUCCEEDED) {
+                            MessageDialog d = new MessageDialog("ERROR",
+                                    act.getString(R.string.error_server));
+                            d.show(act.getSupportFragmentManager(), "errorDialog");
+                        }
+                    }
+                });
+        WorkManager.getInstance(act).enqueue(oneTimeWorkRequest);
     }
 
     public List<Routine> loadRoutines(String mail) {
@@ -274,16 +290,23 @@ public class MyDB extends SQLiteOpenHelper {
         return lEx;
     }
 
-    public int userExistInDB(String mail) {
+    public List<Routine> selectRoutines(String mail) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT COUNT(*) FROM USERS WHERE MAIL == ?";
+        String query = "SELECT * FROM ROUTINES WHERE MAIL = ?";
         Cursor cursor = db.rawQuery(query, new String[]{mail});
 
-        int count = 0;
-        if (cursor.moveToFirst()) {
-            count = cursor.getInt(0);
+        List<Routine> lRoutines = new ArrayList<>();
+
+        while (cursor.moveToNext()) {
+            Routine r = new Routine();
+            r.setId(cursor.getInt(0));
+            r.setMail(cursor.getString(1));
+            r.setDesc(cursor.getString(2));
+            lRoutines.add(r);
         }
         cursor.close();
-        return count;
+        db.close();
+        return lRoutines;
     }
+
 }

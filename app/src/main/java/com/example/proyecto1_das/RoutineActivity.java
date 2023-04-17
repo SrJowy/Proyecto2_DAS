@@ -21,6 +21,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.example.proyecto1_das.calendar.CalendarActivity;
 import com.example.proyecto1_das.data.Routine;
 import com.example.proyecto1_das.db.MyDB;
 import com.example.proyecto1_das.dialog.OptionDialog;
@@ -172,6 +173,9 @@ public class RoutineActivity extends AppCompatActivity implements
                         | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
             }
+        } else if (R.id.nav_calendar == item.getItemId()) {
+            Intent i = new Intent(this, CalendarActivity.class);
+            startActivity(i);
         }
         return true;
     }
