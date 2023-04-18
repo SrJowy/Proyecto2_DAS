@@ -1,5 +1,6 @@
 package com.example.proyecto1_das.calendar;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.util.Log;
@@ -14,9 +15,18 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
 
 import com.example.proyecto1_das.R;
+import com.example.proyecto1_das.RoutineActivity;
+import com.example.proyecto1_das.db.ExternalDB;
+import com.example.proyecto1_das.db.MyDB;
 import com.example.proyecto1_das.dialog.CalendarDialog;
+import com.example.proyecto1_das.dialog.MessageDialog;
+import com.example.proyecto1_das.utils.FileUtils;
 import com.example.proyecto1_das.utils.LocaleUtils;
 import com.example.proyecto1_das.utils.ThemeUtils;
 
@@ -115,6 +125,33 @@ public class CalendarActivity extends AppCompatActivity implements CalendarAdapt
 
     @Override
     public void onRoutineClick(String routine, LocalDate date) {
+        FileUtils fileUtils = new FileUtils();
+        String mail = fileUtils.readFile(getApplicationContext(),"config.txt");
+        String[] keys =  new String[4];
+        Object[] params = new String[4];
+        keys[0] = "param";
+        keys[1] = "mail";
+        keys[2] =  "routine";
+        keys[3] = "date";
+        params[0] = "routineDate";
+        params[1] = mail;
+        params[2] = routine;
+        params[3] = date.toString();
+        Data param = ExternalDB.createParam(keys, params);
+        OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+                .observe(this, workInfo -> {
+                    if (workInfo != null && workInfo.getState().isFinished()) {
+                        if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
+                            boolean success = workInfo.getOutputData().getBoolean("success", false);
+                        } else {
+                            MessageDialog d = new MessageDialog("ERROR",
+                                    getString(R.string.error_server));
+                            d.show(getSupportFragmentManager(), "errorDialog");
+                        }
 
+                    }
+                });
+        WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
     }
 }
