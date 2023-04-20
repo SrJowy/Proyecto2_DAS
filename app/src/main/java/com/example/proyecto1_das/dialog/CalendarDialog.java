@@ -24,20 +24,23 @@ import java.util.List;
 public class CalendarDialog extends DialogFragment {
 
     public interface DialogListener {
-        void onRoutineClick(String routine, LocalDate date);
+        void onRoutineClick(String routine, String day, View assocNumView);
     }
 
     private DialogListener listener;
 
     private String title;
 
-    private LocalDate date;
+    private String day;
+
+    private View assocNum;
 
     private List<Routine> lRoutines;
 
-    public CalendarDialog(String title, LocalDate date) {
-        this.date = date;
+    public CalendarDialog(String title, String day, View assocNum) {
+        this.day = day;
         this.title = title;
+        this.assocNum = assocNum;
     }
 
     @NonNull
@@ -62,7 +65,8 @@ public class CalendarDialog extends DialogFragment {
         listView.setAdapter(adapter);
 
         listView.setOnItemClickListener((adapterView, view, i, l) -> {
-            listener.onRoutineClick((String) adapterView.getAdapter().getItem(i), date);
+            listener.onRoutineClick((String) adapterView.getAdapter().getItem(i), day, assocNum);
+            dismiss();
         });
 
         builder.setView(v);

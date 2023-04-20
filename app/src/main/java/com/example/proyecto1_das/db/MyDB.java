@@ -144,19 +144,21 @@ public class MyDB extends SQLiteOpenHelper {
         db.close();
     }
 
-    public void insertUsr(String usr, String pass, String name, String surname, AppCompatActivity act) {
-        String[] keys =  new String[5];
-        Object[] params = new String[5];
+    public void insertUsr(String usr, String pass, String name, String surname, String token, AppCompatActivity act) {
+        String[] keys =  new String[6];
+        Object[] params = new String[6];
         keys[0] = "param";
         keys[1] = "usr";
         keys[2] = "pass";
         keys[3] = "name";
         keys[4] = "surname";
+        keys[5] = "token";
         params[0] = "signUp";
         params[1] = usr;
         params[2] = pass;
         params[3] = name;
         params[4] = surname;
+        params[5] = token;
 
         Data param = ExternalDB.createParam(keys, params);
         OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();

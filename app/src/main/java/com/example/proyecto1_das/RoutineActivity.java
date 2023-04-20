@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -133,7 +134,7 @@ public class RoutineActivity extends AppCompatActivity implements
                     .toString().split(":")[1].trim()};
             OptionDialog dialogOption =
                     new OptionDialog(getString(R.string.do_action_menu), options,
-                            0, false, args);
+                            0, false, args, null);
             dialogOption.setListener(this);
             dialogOption.show(getSupportFragmentManager(), "dialogRoutine");
             return true;
@@ -181,7 +182,7 @@ public class RoutineActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onDialogRes(String res) {
+    public void onDialogRes(String res, View v) {
         if (res.equals("00")) {
             addDataToList();
             NotificationCompat.Builder elBuilder =

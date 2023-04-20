@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 
 import com.example.proyecto1_das.MainActivity;
@@ -127,7 +128,7 @@ public class ExerciseActivity extends AppCompatActivity implements
         CharSequence[] options = {getString(R.string.remove)};
         String[] args = {rID, Integer.toString(exID)};
         OptionDialog dialogOption =
-                new OptionDialog(getString(R.string.do_action_menu),options, 1, false, args);
+                new OptionDialog(getString(R.string.do_action_menu),options, 1, false, args, null);
         dialogOption.setListener(this);
         dialogOption.show(getSupportFragmentManager(), "dialogExercise");
     }
@@ -160,7 +161,7 @@ public class ExerciseActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onDialogRes(String res) {
+    public void onDialogRes(String res, View v) {
         if (res.equals("00")) {
             reloadFragment();
         }

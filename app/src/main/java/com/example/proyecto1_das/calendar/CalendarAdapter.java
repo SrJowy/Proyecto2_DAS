@@ -1,5 +1,6 @@
 package com.example.proyecto1_das.calendar;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,10 +13,11 @@ import com.example.proyecto1_das.R;
 import java.util.ArrayList;
 
 class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder> {
-    private final ArrayList<String> daysOfMonth;
+    private final ArrayList<Day> daysOfMonth;
     private final OnItemListener onItemListener;
 
-    public CalendarAdapter(ArrayList<String> daysOfMonth, OnItemListener onItemListener) {
+
+    public CalendarAdapter(ArrayList<Day> daysOfMonth, OnItemListener onItemListener) {
         this.daysOfMonth = daysOfMonth;
         this.onItemListener = onItemListener;
     }
@@ -32,7 +34,8 @@ class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull CalendarViewHolder holder, int position) {
-        holder.dayOfMonth.setText(daysOfMonth.get(position));
+        holder.dayOfMonth.setText(daysOfMonth.get(position).getDay());
+        holder.updateColor(daysOfMonth.get(position).isSelected());
     }
 
     @Override

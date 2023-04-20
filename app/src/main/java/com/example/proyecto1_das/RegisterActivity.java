@@ -6,6 +6,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
@@ -17,6 +18,9 @@ import com.example.proyecto1_das.dialog.MessageDialog;
 import com.example.proyecto1_das.utils.LocaleUtils;
 import com.example.proyecto1_das.utils.ThemeUtils;
 import com.example.proyecto1_das.utils.ValidationUtils;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.play.core.tasks.Task;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -68,13 +72,21 @@ public class RegisterActivity extends AppCompatActivity {
                                     MessageDialog d = new MessageDialog("ERROR", getString(R.string.msg_user_exists));
                                     d.show(getSupportFragmentManager(), "errorDialog");
                                 } else {
-                                    MyDB myDB = new MyDB(this);
+                                    FirebaseMessaging.getInstance().getToken()
+                                            .addOnCompleteListener(task -> {
+                                                if (!task.isSuccessful()) {
+                                                    Log.e("ERR_TOKEN", "onCreate", task.getException());
+                                                    return;
+                                                }
+                                                String token = task.getResult();
+                                                MyDB myDB = new MyDB(this);
 
-                                    myDB.insertUsr(mail, password, name, surname, this);
-                                    myDB.close();
-                                    Toast.makeText(this, getString(R.string.msg_success),
-                                            Toast.LENGTH_LONG).show();
-                                    finish();
+                                                myDB.insertUsr(mail, password, name, surname, token, this);
+                                                myDB.close();
+                                                Toast.makeText(this, getString(R.string.msg_success),
+                                                        Toast.LENGTH_LONG).show();
+                                                finish();
+                                            });
                                 }
                             }
                         });
