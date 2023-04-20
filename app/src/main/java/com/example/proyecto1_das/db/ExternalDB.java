@@ -23,6 +23,9 @@ import java.util.ArrayList;
 
 public class ExternalDB extends Worker {
 
+    String myip = "192.168.49.1";
+    String ipPC = "192.168.1.150";
+
     public ExternalDB(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
     }
@@ -33,7 +36,7 @@ public class ExternalDB extends Worker {
         String action = getInputData().getString("param");
         assert action != null;
         if (action.equals("signUp")) {
-            String dir = "http://192.168.1.150:5000/users/create";
+            String dir = "http://" + myip + ":5000/users/create";
             HttpURLConnection urlConnection = null;
 
             String mail = getInputData().getString("usr");
@@ -82,7 +85,7 @@ public class ExternalDB extends Worker {
                 return Result.failure();
             }
         } else if (action.equals("userExists")) {
-            String dir = "http://192.168.1.150:5000/users";
+            String dir = "http://" + myip + ":5000/users";
             HttpURLConnection urlConnection = null;
 
             String mail = getInputData().getString("mail");
@@ -126,7 +129,7 @@ public class ExternalDB extends Worker {
                 return Result.failure();
             }
         } else if (action.equals("signIn")) {
-            String dir = "http://192.168.1.150:5000/users";
+            String dir = "http://" + myip + ":5000/users";
             HttpURLConnection urlConnection = null;
 
             String mail = getInputData().getString("mail");
@@ -171,7 +174,7 @@ public class ExternalDB extends Worker {
                 return Result.failure();
             }
         } else if (action.equals("routineDate")) {
-            String dir = "http://192.168.1.150:5000/diary/create";
+            String dir = "http://" + myip + ":5000/diary/create";
             HttpURLConnection urlConnection = null;
 
             String mail = getInputData().getString("mail");
@@ -217,7 +220,7 @@ public class ExternalDB extends Worker {
                 return Result.failure();
             }
         } else if (action.equals("selectDiary")) {
-            String dir = "http://192.168.1.150:5000/diary";
+            String dir = "http://" + myip + ":5000/diary";
             HttpURLConnection urlConnection = null;
 
             String mail = getInputData().getString("mail");
@@ -265,7 +268,7 @@ public class ExternalDB extends Worker {
                 return Result.failure();
             }
         } else if (action.equals("removeDiary")) {
-            String dir = "http://192.168.1.150:5000/diary";
+            String dir = "http://" + myip + ":5000/diary";
             HttpURLConnection urlConnection = null;
 
             String mail = getInputData().getString("mail");
@@ -305,7 +308,7 @@ public class ExternalDB extends Worker {
                 return Result.failure();
             }
         } else if (action.equals("findDiaries")) {
-            String dir = "http://192.168.1.150:5000/diary";
+            String dir = "http://" + myip + ":5000/diary";
             HttpURLConnection urlConnection = null;
 
             String mail = getInputData().getString("mail");
