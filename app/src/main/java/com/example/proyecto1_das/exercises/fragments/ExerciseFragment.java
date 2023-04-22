@@ -13,37 +13,28 @@ import android.view.ViewGroup;
 
 import com.example.proyecto1_das.R;
 import com.example.proyecto1_das.data.Exercise;
-import com.example.proyecto1_das.db.MyDB;
 import com.example.proyecto1_das.exercises.MyItemRecyclerViewAdapter;
-import com.example.proyecto1_das.utils.LocaleUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ExerciseFragment extends Fragment {
 
+    private List<Exercise> lExercises = new ArrayList<>();
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+    }
+
+    public void setlExercises(List<Exercise> exerciseList) {
+        this.lExercises = exerciseList;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_exercise_list, container, false);
-
-        String rId = "";
-        Bundle bundle = this.getArguments();
-        if (bundle != null) {
-            rId = bundle.getString("RID");
-        }
-
-        String lang = LocaleUtils.getLanguage(getContext());
-
-        MyDB myDB = new MyDB(getContext());
-        List<Exercise> lExercises = myDB.selectExercisesByRoutineID(rId, lang);
-        myDB.close();
-
         if (view instanceof RecyclerView) {
             Context context = view.getContext();
             RecyclerView recyclerView = (RecyclerView) view;

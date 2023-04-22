@@ -23,8 +23,8 @@ import java.util.ArrayList;
 
 public class ExternalDB extends Worker {
 
-    String myip = "192.168.49.1";
-    String ipPC = "192.168.1.150";
+    String ipPC = "192.168.49.1";
+    String myip = "192.168.1.150";
 
     public ExternalDB(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -35,329 +35,666 @@ public class ExternalDB extends Worker {
     public Result doWork() {
         String action = getInputData().getString("param");
         assert action != null;
-        if (action.equals("signUp")) {
-            String dir = "http://" + myip + ":5000/users/create";
-            HttpURLConnection urlConnection = null;
+        switch (action) {
+            case "signUp": {
+                String dir = "http://" + myip + ":5000/users/create";
+                HttpURLConnection urlConnection;
 
-            String mail = getInputData().getString("usr");
-            String pass = getInputData().getString("pass");
-            String name = getInputData().getString("name");
-            String surname = getInputData().getString("surname");
-            String token = getInputData().getString("token");
+                String mail = getInputData().getString("usr");
+                String pass = getInputData().getString("pass");
+                String name = getInputData().getString("name");
+                String surname = getInputData().getString("surname");
+                String token = getInputData().getString("token");
 
-            try {
-                URL dest = new URL(dir);
-                urlConnection = (HttpURLConnection) dest.openConnection();
-                urlConnection.setConnectTimeout(5000);
-                urlConnection.setReadTimeout(5000);
-                urlConnection.setRequestMethod("POST");
-                urlConnection.setRequestProperty("Content-Type","application/json");
-                JSONObject paramJson = new JSONObject();
-                paramJson.put("mail", mail);
-                paramJson.put("pass", pass);
-                paramJson.put("name", name);
-                paramJson.put("surname", surname);
-                paramJson.put("token", token);
-                PrintWriter out = new PrintWriter(urlConnection.getOutputStream());
-                out.print(paramJson.toString());
-                out.close();
-                int statusCode = urlConnection.getResponseCode();
-                if (statusCode == 200) {
-                    BufferedInputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                    String line;
-                    StringBuilder result = new StringBuilder();
-                    while((line = bufferedReader.readLine()) != null) {
-                        result.append(line);
+                try {
+                    URL dest = new URL(dir);
+                    urlConnection = (HttpURLConnection) dest.openConnection();
+                    urlConnection.setConnectTimeout(5000);
+                    urlConnection.setReadTimeout(5000);
+                    urlConnection.setRequestMethod("POST");
+                    urlConnection.setRequestProperty("Content-Type", "application/json");
+                    JSONObject paramJson = new JSONObject();
+                    paramJson.put("mail", mail);
+                    paramJson.put("pass", pass);
+                    paramJson.put("name", name);
+                    paramJson.put("surname", surname);
+                    paramJson.put("token", token);
+                    PrintWriter out = new PrintWriter(urlConnection.getOutputStream());
+                    out.print(paramJson.toString());
+                    out.close();
+                    int statusCode = urlConnection.getResponseCode();
+                    if (statusCode == 200) {
+                        BufferedInputStream inputStream =
+                                new BufferedInputStream(urlConnection.getInputStream());
+                        BufferedReader bufferedReader =
+                                new BufferedReader(new InputStreamReader(inputStream,
+                                        "UTF-8"));
+                        String line;
+                        StringBuilder result = new StringBuilder();
+                        while ((line = bufferedReader.readLine()) != null) {
+                            result.append(line);
+                        }
+                        inputStream.close();
+
+                        JSONParser parser = new JSONParser();
+                        JSONObject json = (JSONObject) parser.parse(result.toString());
+                        Log.i("JSON", "doWork: " + json);
+
+                        Boolean success = (Boolean) json.get("success");
+                        Data.Builder b = new Data.Builder();
+                        return Result.success(b.putBoolean("success", success).build());
                     }
-                    inputStream.close();
-
-                    JSONParser parser = new JSONParser();
-                    JSONObject json = (JSONObject) parser.parse(result.toString());
-                    Log.i("JSON", "doWork: " + json);
-
-                    Boolean success = (Boolean) json.get("success");
-                    Data.Builder b = new Data.Builder();
-                    return Result.success(b.putBoolean("success", success).build());
+                } catch (Exception e) {
+                    Log.e("EXCEPTION", "doWork: ", e);
+                    return Result.failure();
                 }
-            } catch(Exception e) {
-                Log.e("EXCEPTION", "doWork: ", e);
-                return Result.failure();
+                break;
             }
-        } else if (action.equals("userExists")) {
-            String dir = "http://" + myip + ":5000/users";
-            HttpURLConnection urlConnection = null;
+            case "userExists": {
+                String dir = "http://" + myip + ":5000/users";
+                HttpURLConnection urlConnection = null;
 
-            String mail = getInputData().getString("mail");
-            Log.i("MAIL", "doWork: " + mail);
-            try {
-                Uri.Builder builder = new Uri.Builder().appendQueryParameter("mail", mail);
-                String params = builder.build().getEncodedQuery();
+                String mail = getInputData().getString("mail");
+                Log.i("MAIL", "doWork: " + mail);
+                try {
+                    Uri.Builder builder = new Uri.Builder().appendQueryParameter("mail"
+                            , mail);
+                    String params = builder.build().getEncodedQuery();
 
-                dir += "?" + params;
-                Log.i("RUI", "doWork: " + dir);
-                URL dest = new URL(dir);
-                urlConnection = (HttpURLConnection) dest.openConnection();
-                urlConnection.setConnectTimeout(5000);
-                urlConnection.setReadTimeout(5000);
-                urlConnection.setRequestMethod("GET");
+                    dir += "?" + params;
+                    Log.i("RUI", "doWork: " + dir);
+                    URL dest = new URL(dir);
+                    urlConnection = (HttpURLConnection) dest.openConnection();
+                    urlConnection.setConnectTimeout(5000);
+                    urlConnection.setReadTimeout(5000);
+                    urlConnection.setRequestMethod("GET");
 
-                int statusCode = urlConnection.getResponseCode();
-                if (statusCode == 200) {
-                    BufferedInputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                    String line;
-                    StringBuilder result = new StringBuilder();
-                    while((line = bufferedReader.readLine()) != null) {
-                        result.append(line);
+                    int statusCode = urlConnection.getResponseCode();
+                    if (statusCode == 200) {
+                        BufferedInputStream inputStream =
+                                new BufferedInputStream(urlConnection.getInputStream());
+                        BufferedReader bufferedReader =
+                                new BufferedReader(new InputStreamReader(inputStream,
+                                        "UTF-8"));
+                        String line;
+                        StringBuilder result = new StringBuilder();
+                        while ((line = bufferedReader.readLine()) != null) {
+                            result.append(line);
+                        }
+                        inputStream.close();
+
+                        JSONParser parser = new JSONParser();
+                        JSONObject json = (JSONObject) parser.parse(result.toString());
+                        Log.i("JSON", "doWork: " + json);
+
+                        JSONArray array = (JSONArray) json.get("result");
+                        int len = 0;
+                        if (array.size() > 0) len = array.size();
+                        Log.i("JSON", "doWork: " + len);
+                        Data.Builder b = new Data.Builder();
+                        return Result.success(b.putInt("len", len).build());
                     }
-                    inputStream.close();
-
-                    JSONParser parser = new JSONParser();
-                    JSONObject json = (JSONObject) parser.parse(result.toString());
-                    Log.i("JSON", "doWork: " + json);
-
-                    JSONArray array = (JSONArray) json.get("result");
-                    int len = 0;
-                    if (array.size() > 0) len = array.size();
-                    Log.i("JSON", "doWork: " + len);
-                    Data.Builder b = new Data.Builder();
-                    return Result.success(b.putInt("len", len).build());
+                } catch (Exception e) {
+                    Log.e("EXCEPTION", "doWork: ", e);
+                    return Result.failure();
                 }
-            } catch(Exception e) {
-                Log.e("EXCEPTION", "doWork: ", e);
-                return Result.failure();
+                break;
             }
-        } else if (action.equals("signIn")) {
-            String dir = "http://" + myip + ":5000/users";
-            HttpURLConnection urlConnection = null;
+            case "signIn": {
+                String dir = "http://" + myip + ":5000/users";
+                HttpURLConnection urlConnection = null;
 
-            String mail = getInputData().getString("mail");
-            String password = getInputData().getString("pass");
-            Log.i("MAIL", "doWork: " + mail + " " + password);
-            try {
-                Uri.Builder builder = new Uri.Builder().appendQueryParameter("mail", mail).appendQueryParameter("pass", password);
-                String params = builder.build().getEncodedQuery();
+                String mail = getInputData().getString("mail");
+                String password = getInputData().getString("pass");
+                Log.i("MAIL", "doWork: " + mail + " " + password);
+                try {
+                    Uri.Builder builder = new Uri.Builder().appendQueryParameter("mail"
+                            , mail).appendQueryParameter("pass", password);
+                    String params = builder.build().getEncodedQuery();
 
-                dir += "?" + params;
-                Log.i("RUI", "doWork: " + dir);
-                URL dest = new URL(dir);
-                urlConnection = (HttpURLConnection) dest.openConnection();
-                urlConnection.setConnectTimeout(5000);
-                urlConnection.setReadTimeout(5000);
-                urlConnection.setRequestMethod("GET");
+                    dir += "?" + params;
+                    Log.i("RUI", "doWork: " + dir);
+                    URL dest = new URL(dir);
+                    urlConnection = (HttpURLConnection) dest.openConnection();
+                    urlConnection.setConnectTimeout(5000);
+                    urlConnection.setReadTimeout(5000);
+                    urlConnection.setRequestMethod("GET");
 
-                int statusCode = urlConnection.getResponseCode();
-                if (statusCode == 200) {
-                    BufferedInputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                    String line;
-                    StringBuilder result = new StringBuilder();
-                    while((line = bufferedReader.readLine()) != null) {
-                        result.append(line);
+                    int statusCode = urlConnection.getResponseCode();
+                    if (statusCode == 200) {
+                        BufferedInputStream inputStream =
+                                new BufferedInputStream(urlConnection.getInputStream());
+                        BufferedReader bufferedReader =
+                                new BufferedReader(new InputStreamReader(inputStream,
+                                        "UTF-8"));
+                        String line;
+                        StringBuilder result = new StringBuilder();
+                        while ((line = bufferedReader.readLine()) != null) {
+                            result.append(line);
+                        }
+                        inputStream.close();
+
+                        JSONParser parser = new JSONParser();
+                        JSONObject json = (JSONObject) parser.parse(result.toString());
+                        Log.i("JSON", "doWork: " + json);
+
+                        JSONArray array = (JSONArray) json.get("result");
+                        boolean success = false;
+                        if (array.size() > 0) success = true;
+                        Log.i("JSON", "doWork: " + success);
+                        Data.Builder b = new Data.Builder();
+                        return Result.success(b.putBoolean("success", success).build());
                     }
-                    inputStream.close();
-
-                    JSONParser parser = new JSONParser();
-                    JSONObject json = (JSONObject) parser.parse(result.toString());
-                    Log.i("JSON", "doWork: " + json);
-
-                    JSONArray array = (JSONArray) json.get("result");
-                    boolean success = false;
-                    if (array.size() > 0) success = true;
-                    Log.i("JSON", "doWork: " + success);
-                    Data.Builder b = new Data.Builder();
-                    return Result.success(b.putBoolean("success", success).build());
+                } catch (Exception e) {
+                    Log.e("EXCEPTION", "doWork: ", e);
+                    return Result.failure();
                 }
-            } catch(Exception e) {
-                Log.e("EXCEPTION", "doWork: ", e);
-                return Result.failure();
+                break;
             }
-        } else if (action.equals("routineDate")) {
-            String dir = "http://" + myip + ":5000/diary/create";
-            HttpURLConnection urlConnection = null;
+            case "routineDate": {
+                String dir = "http://" + myip + ":5000/diary/create";
+                HttpURLConnection urlConnection = null;
 
-            String mail = getInputData().getString("mail");
-            String routine = getInputData().getString("routine");
-            String date = getInputData().getString("date");
+                String mail = getInputData().getString("mail");
+                String routine = getInputData().getString("routine");
+                String date = getInputData().getString("date");
 
-            try {
-                URL dest = new URL(dir);
-                urlConnection = (HttpURLConnection) dest.openConnection();
-                urlConnection.setConnectTimeout(5000);
-                urlConnection.setReadTimeout(5000);
-                urlConnection.setRequestMethod("POST");
-                urlConnection.setRequestProperty("Content-Type","application/json");
-                JSONObject paramJson = new JSONObject();
-                paramJson.put("mail", mail);
-                paramJson.put("routine", routine);
-                paramJson.put("date", date);
-                Log.i("TAG", "doWork: " + date);
-                PrintWriter out = new PrintWriter(urlConnection.getOutputStream());
-                out.print(paramJson);
-                out.close();
-                int statusCode = urlConnection.getResponseCode();
-                if (statusCode == 200) {
-                    BufferedInputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                    String line;
-                    StringBuilder result = new StringBuilder();
-                    while((line = bufferedReader.readLine()) != null) {
-                        result.append(line);
+                try {
+                    URL dest = new URL(dir);
+                    urlConnection = (HttpURLConnection) dest.openConnection();
+                    urlConnection.setConnectTimeout(5000);
+                    urlConnection.setReadTimeout(5000);
+                    urlConnection.setRequestMethod("POST");
+                    urlConnection.setRequestProperty("Content-Type", "application/json");
+                    JSONObject paramJson = new JSONObject();
+                    paramJson.put("mail", mail);
+                    paramJson.put("routine", routine);
+                    paramJson.put("date", date);
+                    Log.i("TAG", "doWork: " + date);
+                    PrintWriter out = new PrintWriter(urlConnection.getOutputStream());
+                    out.print(paramJson);
+                    out.close();
+                    int statusCode = urlConnection.getResponseCode();
+                    if (statusCode == 200) {
+                        BufferedInputStream inputStream =
+                                new BufferedInputStream(urlConnection.getInputStream());
+                        BufferedReader bufferedReader =
+                                new BufferedReader(new InputStreamReader(inputStream,
+                                        "UTF-8"));
+                        String line;
+                        StringBuilder result = new StringBuilder();
+                        while ((line = bufferedReader.readLine()) != null) {
+                            result.append(line);
+                        }
+                        inputStream.close();
+
+                        JSONParser parser = new JSONParser();
+                        JSONObject json = (JSONObject) parser.parse(result.toString());
+                        Log.i("JSON", "doWork: " + json);
+
+                        Boolean success = (Boolean) json.get("success");
+                        Data.Builder b = new Data.Builder();
+                        return Result.success(b.putBoolean("success", success).build());
                     }
-                    inputStream.close();
-
-                    JSONParser parser = new JSONParser();
-                    JSONObject json = (JSONObject) parser.parse(result.toString());
-                    Log.i("JSON", "doWork: " + json);
-
-                    Boolean success = (Boolean) json.get("success");
-                    Data.Builder b = new Data.Builder();
-                    return Result.success(b.putBoolean("success", success).build());
+                } catch (Exception e) {
+                    Log.e("EXCEPTION", "doWork: ", e);
+                    return Result.failure();
                 }
-            } catch(Exception e) {
-                Log.e("EXCEPTION", "doWork: ", e);
-                return Result.failure();
+                break;
             }
-        } else if (action.equals("selectDiary")) {
-            String dir = "http://" + myip + ":5000/diary";
-            HttpURLConnection urlConnection = null;
+            case "selectDiary": {
+                String dir = "http://" + myip + ":5000/diary";
+                HttpURLConnection urlConnection = null;
 
-            String mail = getInputData().getString("mail");
-            String date = getInputData().getString("date");
-            try {
-                Uri.Builder builder = new Uri.Builder().appendQueryParameter("mail", mail).appendQueryParameter("date", date);
-                String params = builder.build().getEncodedQuery();
+                String mail = getInputData().getString("mail");
+                String date = getInputData().getString("date");
+                try {
+                    Uri.Builder builder = new Uri.Builder().appendQueryParameter("mail"
+                            , mail).appendQueryParameter("date", date);
+                    String params = builder.build().getEncodedQuery();
 
-                dir += "?" + params;
+                    dir += "?" + params;
 
-                URL dest = new URL(dir);
-                urlConnection = (HttpURLConnection) dest.openConnection();
-                urlConnection.setConnectTimeout(5000);
-                urlConnection.setReadTimeout(5000);
-                urlConnection.setRequestMethod("GET");
+                    URL dest = new URL(dir);
+                    urlConnection = (HttpURLConnection) dest.openConnection();
+                    urlConnection.setConnectTimeout(5000);
+                    urlConnection.setReadTimeout(5000);
+                    urlConnection.setRequestMethod("GET");
 
-                int statusCode = urlConnection.getResponseCode();
-                if (statusCode == 200) {
-                    BufferedInputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                    String line;
-                    StringBuilder result = new StringBuilder();
-                    while((line = bufferedReader.readLine()) != null) {
-                        result.append(line);
+                    int statusCode = urlConnection.getResponseCode();
+                    if (statusCode == 200) {
+                        BufferedInputStream inputStream =
+                                new BufferedInputStream(urlConnection.getInputStream());
+                        BufferedReader bufferedReader =
+                                new BufferedReader(new InputStreamReader(inputStream,
+                                        "UTF-8"));
+                        String line;
+                        StringBuilder result = new StringBuilder();
+                        while ((line = bufferedReader.readLine()) != null) {
+                            result.append(line);
+                        }
+                        inputStream.close();
+
+                        JSONParser parser = new JSONParser();
+                        JSONObject json = (JSONObject) parser.parse(result.toString());
+
+                        JSONArray array = (JSONArray) json.get("result");
+                        String[] diary = new String[0];
+                        for (Object o : array) {
+                            diary = new String[3];
+                            JSONObject jsonObject = (JSONObject) o;
+                            diary[0] = (String) jsonObject.get("MAIL");
+                            diary[1] = (String) jsonObject.get("ROUTINE");
+                            diary[2] = (String) jsonObject.get("DATE_ROUTINE");
+                        }
+                        Data.Builder b = new Data.Builder();
+                        return Result.success(b.putStringArray("diary", diary).build());
                     }
-                    inputStream.close();
-
-                    JSONParser parser = new JSONParser();
-                    JSONObject json = (JSONObject) parser.parse(result.toString());
-
-                    JSONArray array = (JSONArray) json.get("result");
-                    String[] diary = new String[0];
-                    for (Object o: array) {
-                        diary = new String[3];
-                        JSONObject jsonObject = (JSONObject) o;
-                        diary[0] = (String) jsonObject.get("MAIL");
-                        diary[1] = (String) jsonObject.get("ROUTINE");
-                        diary[2] = (String) jsonObject.get("DATE_ROUTINE");
-                    }
-                    Data.Builder b = new Data.Builder();
-                    return Result.success(b.putStringArray("diary", diary).build());
+                } catch (Exception e) {
+                    Log.e("EXCEPTION", "doWork: ", e);
+                    return Result.failure();
                 }
-            } catch(Exception e) {
-                Log.e("EXCEPTION", "doWork: ", e);
-                return Result.failure();
+                break;
             }
-        } else if (action.equals("removeDiary")) {
-            String dir = "http://" + myip + ":5000/diary";
-            HttpURLConnection urlConnection = null;
+            case "removeDiary": {
+                String dir = "http://" + myip + ":5000/diary";
+                HttpURLConnection urlConnection = null;
 
-            String mail = getInputData().getString("mail");
-            String date = getInputData().getString("date");
-            try {
-                Uri.Builder builder = new Uri.Builder().appendQueryParameter("mail", mail).appendQueryParameter("date", date);
-                String params = builder.build().getEncodedQuery();
+                String mail = getInputData().getString("mail");
+                String date = getInputData().getString("date");
+                try {
+                    Uri.Builder builder = new Uri.Builder().appendQueryParameter("mail"
+                            , mail).appendQueryParameter("date", date);
+                    String params = builder.build().getEncodedQuery();
 
-                dir += "?" + params;
+                    dir += "?" + params;
 
-                URL dest = new URL(dir);
-                urlConnection = (HttpURLConnection) dest.openConnection();
-                urlConnection.setConnectTimeout(5000);
-                urlConnection.setReadTimeout(5000);
-                urlConnection.setRequestMethod("DELETE");
+                    URL dest = new URL(dir);
+                    urlConnection = (HttpURLConnection) dest.openConnection();
+                    urlConnection.setConnectTimeout(5000);
+                    urlConnection.setReadTimeout(5000);
+                    urlConnection.setRequestMethod("DELETE");
 
-                int statusCode = urlConnection.getResponseCode();
-                if (statusCode == 200) {
-                    BufferedInputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                    String line;
-                    StringBuilder result = new StringBuilder();
-                    while((line = bufferedReader.readLine()) != null) {
-                        result.append(line);
+                    int statusCode = urlConnection.getResponseCode();
+                    if (statusCode == 200) {
+                        BufferedInputStream inputStream =
+                                new BufferedInputStream(urlConnection.getInputStream());
+                        BufferedReader bufferedReader =
+                                new BufferedReader(new InputStreamReader(inputStream,
+                                        "UTF-8"));
+                        String line;
+                        StringBuilder result = new StringBuilder();
+                        while ((line = bufferedReader.readLine()) != null) {
+                            result.append(line);
+                        }
+                        inputStream.close();
+
+                        JSONParser parser = new JSONParser();
+                        JSONObject json = (JSONObject) parser.parse(result.toString());
+
+                        Boolean success = (Boolean) json.get("success");
+                        Data.Builder b = new Data.Builder();
+                        return Result.success(b.putBoolean("success", success).build());
                     }
-                    inputStream.close();
-
-                    JSONParser parser = new JSONParser();
-                    JSONObject json = (JSONObject) parser.parse(result.toString());
-
-                    Boolean success = (Boolean) json.get("success");
-                    Data.Builder b = new Data.Builder();
-                    return Result.success(b.putBoolean("success", success).build());
+                } catch (Exception e) {
+                    Log.e("EXCEPTION", "doWork: ", e);
+                    return Result.failure();
                 }
-            } catch(Exception e) {
-                Log.e("EXCEPTION", "doWork: ", e);
-                return Result.failure();
+                break;
             }
-        } else if (action.equals("findDiaries")) {
-            String dir = "http://" + myip + ":5000/diary";
-            HttpURLConnection urlConnection = null;
+            case "findDiaries": {
+                String dir = "http://" + myip + ":5000/diary";
+                HttpURLConnection urlConnection = null;
 
-            String mail = getInputData().getString("mail");
-            String month = getInputData().getString("month");
-            String year = getInputData().getString("year");
-            try {
-                Uri.Builder builder = new Uri.Builder().appendQueryParameter("mail", mail)
-                    .appendQueryParameter("month", month)
-                    .appendQueryParameter("year", year);
-                String params = builder.build().getEncodedQuery();
+                String mail = getInputData().getString("mail");
+                String month = getInputData().getString("month");
+                String year = getInputData().getString("year");
+                try {
+                    Uri.Builder builder = new Uri.Builder().appendQueryParameter("mail"
+                                    , mail)
+                            .appendQueryParameter("month", month)
+                            .appendQueryParameter("year", year);
+                    String params = builder.build().getEncodedQuery();
 
-                dir += "?" + params;
+                    dir += "?" + params;
 
-                URL dest = new URL(dir);
-                urlConnection = (HttpURLConnection) dest.openConnection();
-                urlConnection.setConnectTimeout(5000);
-                urlConnection.setReadTimeout(5000);
-                urlConnection.setRequestMethod("GET");
+                    URL dest = new URL(dir);
+                    urlConnection = (HttpURLConnection) dest.openConnection();
+                    urlConnection.setConnectTimeout(5000);
+                    urlConnection.setReadTimeout(5000);
+                    urlConnection.setRequestMethod("GET");
 
-                int statusCode = urlConnection.getResponseCode();
-                if (statusCode == 200) {
-                    BufferedInputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-                    String line;
-                    StringBuilder result = new StringBuilder();
-                    while ((line = bufferedReader.readLine()) != null) {
-                        result.append(line);
+                    int statusCode = urlConnection.getResponseCode();
+                    if (statusCode == 200) {
+                        BufferedInputStream inputStream =
+                                new BufferedInputStream(urlConnection.getInputStream());
+                        BufferedReader bufferedReader =
+                                new BufferedReader(new InputStreamReader(inputStream,
+                                        "UTF-8"));
+                        String line;
+                        StringBuilder result = new StringBuilder();
+                        while ((line = bufferedReader.readLine()) != null) {
+                            result.append(line);
+                        }
+                        inputStream.close();
+
+                        JSONParser parser = new JSONParser();
+                        JSONObject json = (JSONObject) parser.parse(result.toString());
+                        JSONArray array = (JSONArray) json.get("result");
+                        ArrayList<String> days = new ArrayList<>();
+                        for (Object o : array) {
+                            JSONObject jsonObject = (JSONObject) o;
+                            String date = (String) jsonObject.get("DATE_F");
+                            String day = date.substring(8, 10);
+                            if (day.charAt(0) == '0')
+                                day = Character.toString(day.charAt(1));
+                            days.add(day);
+                        }
+
+                        String[] stringArray = days.toArray(new String[days.size()]);
+                        Data.Builder b = new Data.Builder();
+                        return Result.success(b.putStringArray("days", stringArray).build());
                     }
-                    inputStream.close();
-
-                    JSONParser parser = new JSONParser();
-                    JSONObject json = (JSONObject) parser.parse(result.toString());
-                    JSONArray array = (JSONArray) json.get("result");
-                    ArrayList<String> days = new ArrayList<>();
-                    for (Object o: array) {
-                        JSONObject jsonObject = (JSONObject) o;
-                        String date = (String) jsonObject.get("DATE_F");
-                        String day = date.substring(8,10);
-                        if (day.charAt(0) == '0') day = Character.toString(day.charAt(1));
-                        days.add(day);
-                    }
-
-                    String[] stringArray = days.toArray(new String[days.size()]);
-                    Data.Builder b = new Data.Builder();
-                    return Result.success(b.putStringArray("days", stringArray).build());
+                } catch (Exception e) {
+                    Log.e("EXCEPTION", "doWork: ", e);
+                    return Result.failure();
                 }
-            } catch (Exception e) {
-                Log.e("EXCEPTION", "doWork: ", e);
-                return Result.failure();
+                break;
+            }
+            case "insertRoutine": {
+                String dir = "http://" + myip + ":5000/routine/create";
+                HttpURLConnection urlConnection = null;
+
+                String mail = getInputData().getString("mail");
+                String rName = getInputData().getString("rName");
+                String rDesc = getInputData().getString("rDesc");
+                try {
+                    URL dest = new URL(dir);
+                    urlConnection = (HttpURLConnection) dest.openConnection();
+                    urlConnection.setConnectTimeout(5000);
+                    urlConnection.setReadTimeout(5000);
+                    urlConnection.setRequestMethod("POST");
+                    urlConnection.setRequestProperty("Content-Type", "application/json");
+                    JSONObject paramJson = new JSONObject();
+                    paramJson.put("mail", mail);
+                    paramJson.put("routine_name", rName);
+                    paramJson.put("routine_desc", rDesc);
+                    PrintWriter out = new PrintWriter(urlConnection.getOutputStream());
+                    out.print(paramJson);
+                    out.close();
+                    int statusCode = urlConnection.getResponseCode();
+                    if (statusCode == 200) {
+                        BufferedInputStream inputStream =
+                                new BufferedInputStream(urlConnection.getInputStream());
+                        BufferedReader bufferedReader =
+                                new BufferedReader(new InputStreamReader(inputStream,
+                                        "UTF-8"));
+                        String line;
+                        StringBuilder result = new StringBuilder();
+                        while ((line = bufferedReader.readLine()) != null) {
+                            result.append(line);
+                        }
+                        inputStream.close();
+
+                        JSONParser parser = new JSONParser();
+                        JSONObject json = (JSONObject) parser.parse(result.toString());
+
+                        Boolean success = (Boolean) json.get("success");
+                        Data.Builder b = new Data.Builder();
+                        return Result.success(b.putBoolean("success", success).build());
+                    }
+                } catch (Exception e) {
+                    Log.e("EXCEPTION", "doWork: ", e);
+                    return Result.failure();
+                }
+                break;
+            }
+            case "loadRoutines": {
+                String dir = "http://" + myip + ":5000/routine";
+                HttpURLConnection urlConnection = null;
+
+                String mail = getInputData().getString("mail");
+
+                try {
+                    Uri.Builder builder = new Uri.Builder().appendQueryParameter("mail"
+                            , mail);
+                    String params = builder.build().getEncodedQuery();
+
+                    dir += "?" + params;
+
+                    URL dest = new URL(dir);
+                    urlConnection = (HttpURLConnection) dest.openConnection();
+                    urlConnection.setConnectTimeout(5000);
+                    urlConnection.setReadTimeout(5000);
+                    urlConnection.setRequestMethod("GET");
+
+                    int statusCode = urlConnection.getResponseCode();
+                    if (statusCode == 200) {
+                        BufferedInputStream inputStream =
+                                new BufferedInputStream(urlConnection.getInputStream());
+                        BufferedReader bufferedReader =
+                                new BufferedReader(new InputStreamReader(inputStream,
+                                        "UTF-8"));
+                        String line;
+                        StringBuilder result = new StringBuilder();
+                        while ((line = bufferedReader.readLine()) != null) {
+                            result.append(line);
+                        }
+                        inputStream.close();
+
+                        JSONParser parser = new JSONParser();
+                        JSONObject json = (JSONObject) parser.parse(result.toString());
+                        JSONArray array = (JSONArray) json.get("result");
+                        ArrayList<String> days = new ArrayList<>();
+                        Data.Builder b = new Data.Builder();
+                        int i = 0;
+                        for (Object o : array) {
+                            JSONObject jsonObject = (JSONObject) o;
+
+                            String[] routineData = new String[3];
+                            routineData[0] = (String) jsonObject.get("MAIL");
+                            routineData[1] = (String) jsonObject.get("NAME");
+                            routineData[2] = (String) jsonObject.get("DESCRIP");
+                            b.putStringArray(Integer.toString(i), routineData);
+                            i++;
+                        }
+
+                        return Result.success(b.putInt("size", i).build());
+                    }
+                } catch (Exception e) {
+                    Log.e("EXCEPTION", "doWork: ", e);
+                    return Result.failure();
+                }
+                break;
+            }
+            case "removeRoutine": {
+                String dir = "http://" + myip + ":5000/routine";
+                HttpURLConnection urlConnection = null;
+
+                String mail = getInputData().getString("mail");
+                String name = getInputData().getString("name");
+                try {
+                    Uri.Builder builder = new Uri.Builder().appendQueryParameter("mail"
+                            , mail).appendQueryParameter("name", name);
+                    String params = builder.build().getEncodedQuery();
+
+                    dir += "?" + params;
+
+                    URL dest = new URL(dir);
+                    urlConnection = (HttpURLConnection) dest.openConnection();
+                    urlConnection.setConnectTimeout(5000);
+                    urlConnection.setReadTimeout(5000);
+                    urlConnection.setRequestMethod("DELETE");
+
+                    int statusCode = urlConnection.getResponseCode();
+                    if (statusCode == 200) {
+                        BufferedInputStream inputStream =
+                                new BufferedInputStream(urlConnection.getInputStream());
+                        BufferedReader bufferedReader =
+                                new BufferedReader(new InputStreamReader(inputStream,
+                                        "UTF-8"));
+                        String line;
+                        StringBuilder result = new StringBuilder();
+                        while ((line = bufferedReader.readLine()) != null) {
+                            result.append(line);
+                        }
+                        inputStream.close();
+
+                        JSONParser parser = new JSONParser();
+                        JSONObject json = (JSONObject) parser.parse(result.toString());
+
+                        Boolean success = (Boolean) json.get("success");
+                        Data.Builder b = new Data.Builder();
+                        return Result.success(b.putBoolean("success", success).build());
+                    }
+                } catch (Exception e) {
+                    Log.e("EXCEPTION", "doWork: ", e);
+                    return Result.failure();
+                }
+                break;
+            }
+            case "removeRoutineEx": {
+                String dir = "http://" + myip + ":5000/routine-ex";
+                HttpURLConnection urlConnection = null;
+
+                String mail = getInputData().getString("mail");
+                String name = getInputData().getString("name");
+                String idEj = getInputData().getString("idEj");
+                try {
+                    Uri.Builder builder = new Uri.Builder().appendQueryParameter("mail"
+                                    , mail)
+                            .appendQueryParameter("name", name).appendQueryParameter(
+                                    "id_ej", idEj);
+                    String params = builder.build().getEncodedQuery();
+
+                    dir += "?" + params;
+
+                    URL dest = new URL(dir);
+                    urlConnection = (HttpURLConnection) dest.openConnection();
+                    urlConnection.setConnectTimeout(5000);
+                    urlConnection.setReadTimeout(5000);
+                    urlConnection.setRequestMethod("DELETE");
+
+                    int statusCode = urlConnection.getResponseCode();
+                    if (statusCode == 200) {
+                        BufferedInputStream inputStream =
+                                new BufferedInputStream(urlConnection.getInputStream());
+                        BufferedReader bufferedReader =
+                                new BufferedReader(new InputStreamReader(inputStream,
+                                        "UTF-8"));
+                        String line;
+                        StringBuilder result = new StringBuilder();
+                        while ((line = bufferedReader.readLine()) != null) {
+                            result.append(line);
+                        }
+                        inputStream.close();
+
+                        JSONParser parser = new JSONParser();
+                        JSONObject json = (JSONObject) parser.parse(result.toString());
+
+                        Boolean success = (Boolean) json.get("success");
+                        Data.Builder b = new Data.Builder();
+                        return Result.success(b.putBoolean("success", success).build());
+                    }
+                } catch (Exception e) {
+                    Log.e("EXCEPTION", "doWork: ", e);
+                    return Result.failure();
+                }
+                break;
+            }
+            case "insertEjRoutine": {
+                String dir = "http://" + myip + ":5000/routine-ex/create";
+                HttpURLConnection urlConnection = null;
+
+                String mail = getInputData().getString("mail");
+                String rName = getInputData().getString("rName");
+                Integer exID = Integer.parseInt(getInputData().getString("exID"));
+                try {
+                    URL dest = new URL(dir);
+                    urlConnection = (HttpURLConnection) dest.openConnection();
+                    urlConnection.setConnectTimeout(5000);
+                    urlConnection.setReadTimeout(5000);
+                    urlConnection.setRequestMethod("POST");
+                    urlConnection.setRequestProperty("Content-Type", "application/json");
+                    JSONObject paramJson = new JSONObject();
+                    paramJson.put("mail", mail);
+                    paramJson.put("routine_name", rName);
+                    paramJson.put("ex_id", exID);
+                    PrintWriter out = new PrintWriter(urlConnection.getOutputStream());
+                    out.print(paramJson);
+                    out.close();
+                    int statusCode = urlConnection.getResponseCode();
+                    if (statusCode == 200) {
+                        BufferedInputStream inputStream =
+                                new BufferedInputStream(urlConnection.getInputStream());
+                        BufferedReader bufferedReader =
+                                new BufferedReader(new InputStreamReader(inputStream,
+                                        "UTF-8"));
+                        String line;
+                        StringBuilder result = new StringBuilder();
+                        while ((line = bufferedReader.readLine()) != null) {
+                            result.append(line);
+                        }
+                        inputStream.close();
+
+                        JSONParser parser = new JSONParser();
+                        JSONObject json = (JSONObject) parser.parse(result.toString());
+
+                        Boolean success = (Boolean) json.get("success");
+                        Data.Builder b = new Data.Builder();
+                        return Result.success(b.putBoolean("success", success).build());
+                    }
+                } catch (Exception e) {
+                    Log.e("EXCEPTION", "doWork: ", e);
+                    return Result.failure();
+                }
+                break;
+            }
+            case "saveImage": {
+                String dir = "http://" + myip + ":5000/image/create";
+                HttpURLConnection urlConnection = null;
+
+                String mail = getInputData().getString("mail");
+                String image = getInputData().getString("image");
+                byte[] imageBytes = image.getBytes();
+                Integer exID = Integer.parseInt(getInputData().getString("exID"));
+                try {
+                    URL dest = new URL(dir);
+                    urlConnection = (HttpURLConnection) dest.openConnection();
+                    urlConnection.setConnectTimeout(5000);
+                    urlConnection.setReadTimeout(5000);
+                    urlConnection.setRequestMethod("POST");
+                    urlConnection.setRequestProperty("Content-Type", "application/json");
+                    JSONObject paramJson = new JSONObject();
+                    paramJson.put("mail", mail);
+                    paramJson.put("image", imageBytes);
+                    paramJson.put("ex_id", exID);
+                    PrintWriter out = new PrintWriter(urlConnection.getOutputStream());
+                    out.print(paramJson);
+                    out.close();
+                    int statusCode = urlConnection.getResponseCode();
+                    if (statusCode == 200) {
+                        BufferedInputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
+                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+                        String line;
+                        StringBuilder result = new StringBuilder();
+                        while ((line = bufferedReader.readLine()) != null) {
+                            result.append(line);
+                        }
+                        inputStream.close();
+
+                        JSONParser parser = new JSONParser();
+                        JSONObject json = (JSONObject) parser.parse(result.toString());
+
+                        Boolean success = (Boolean) json.get("success");
+                        Data.Builder b = new Data.Builder();
+                        return Result.success(b.putBoolean("success", success).build());
+                    }
+                } catch (Exception e) {
+                    Log.e("EXCEPTION", "doWork: ", e);
+                    return Result.failure();
+                }
+                break;
             }
         }
         return Result.success();

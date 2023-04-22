@@ -7,18 +7,31 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.proyecto1_das.MainActivity;
 import com.example.proyecto1_das.OptionsActivity;
 import com.example.proyecto1_das.R;
+import com.example.proyecto1_das.data.Exercise;
+import com.example.proyecto1_das.db.ExternalDB;
+import com.example.proyecto1_das.dialog.MessageDialog;
 import com.example.proyecto1_das.dialog.OptionDialog;
 import com.example.proyecto1_das.exercises.fragments.ExerciseDataFragment;
 import com.example.proyecto1_das.exercises.fragments.ExerciseFragment;
@@ -28,13 +41,19 @@ import com.example.proyecto1_das.utils.ThemeUtils;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class ExerciseActivity extends AppCompatActivity implements
         MyViewHolder.listenerViewHolder, NavigationView.OnNavigationItemSelectedListener,
         OptionDialog.DialogListener {
 
     private ActionBarDrawerToggle actionBarDrawerToggle;
-
-    private String rID;
+    private String rName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,14 +65,44 @@ public class ExerciseActivity extends AppCompatActivity implements
 
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            rID = bundle.getString("RID");
-            Bundle b = new Bundle();
-            b.putString("RID", rID);
-            ExerciseFragment eFrag = new ExerciseFragment();
-            eFrag.setArguments(b);
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragmentContainerView, eFrag)
-                    .commit();
+            Log.i("EA", "onCreate: bundle not null");
+            rName = bundle.getString("rName");
+
+            String lang = LocaleUtils.getLanguage(this);
+
+            FileUtils fileUtils = new FileUtils();
+            String mail = fileUtils.readFile(this, "config.txt");
+
+            String url = "http://192.168.1.150:5000/exercise";
+            JSONObject requestBody = new JSONObject();
+
+            try {
+                requestBody.put("mail", mail);
+                requestBody.put("routine_name", rName);
+                requestBody.put("lang", lang);
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+
+            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, requestBody,
+                    (Response.Listener<JSONObject>) response -> {
+                        Log.i("EA", "onCreate: " + response);
+
+                        List<Exercise> lExercises = transformJson(response);
+                        ExerciseFragment eFrag = new ExerciseFragment();
+                        eFrag.setlExercises(lExercises);
+                        getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.fragmentContainerView, eFrag)
+                                .commit();
+
+                    }, (Response.ErrorListener) error -> {
+                        Log.e("EA", "onCreate: ", error);
+                    });
+
+            RequestQueue queue = Volley.newRequestQueue(this);
+            queue.add(request);
+        } else{
+            Log.i("EA", "onCreate: bundle null");
         }
 
         DrawerLayout d = findViewById(R.id.my_drawer_layout2);
@@ -81,7 +130,7 @@ public class ExerciseActivity extends AppCompatActivity implements
         FloatingActionButton fButton = findViewById(R.id.floating_button);
         fButton.setOnClickListener(c -> {
             Intent i = new Intent(this, AddExerciseActivity.class);
-            i.putExtra("RID", rID);
+            i.putExtra("rName", rName);
             activityResultLauncher.launch(i);
         });
     }
@@ -95,14 +144,63 @@ public class ExerciseActivity extends AppCompatActivity implements
             }
     );
 
+    private List<Exercise> transformJson(JSONObject response) {
+        List<Exercise> lEx = new ArrayList<>();
+        try {
+            JSONArray array = (JSONArray) response.get("result");
+            for (int i = 0; i < array.length(); i++) {
+                Exercise e = new Exercise();
+                JSONObject json = (JSONObject) array.get(i);
+                e.setId((Integer) json.get("ID"));
+                e.setName((String) json.get("NAME"));
+                e.setDes((String) json.get("DES"));
+                e.setNumSeries((Integer) json.get("NUM_SERIES"));
+                e.setNumReps((Integer) json.get("NUM_REPS"));
+                e.setNumKgs(Double.valueOf(json.get("KG").toString()));
+                e.setLink((String) json.get("LINK"));
+                lEx.add(e);
+            }
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+        return lEx;
+    }
+
     private void reloadFragment() {
-        ExerciseFragment eFragment = new ExerciseFragment();
-        Bundle b = new Bundle();
-        b.putString("RID", rID);
-        eFragment.setArguments(b);
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragmentContainerView, eFragment)
-                .commit();
+        Log.i("TAG", "reloadFragment: entra por aqui");
+        String lang = LocaleUtils.getLanguage(this);
+
+        FileUtils fileUtils = new FileUtils();
+        String mail = fileUtils.readFile(this, "config.txt");
+
+        String url = "http://192.168.1.150:5000/exercise";
+        JSONObject requestBody = new JSONObject();
+
+        try {
+            requestBody.put("mail", mail);
+            requestBody.put("routine_name", rName);
+            requestBody.put("lang", lang);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, requestBody,
+                (Response.Listener<JSONObject>) response -> {
+                    Log.i("EA", "onCreate: " + response);
+
+                    List<Exercise> lExercises = transformJson(response);
+                    ExerciseFragment eFrag = new ExerciseFragment();
+                    eFrag.setlExercises(lExercises);
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.fragmentContainerView, eFrag)
+                            .commit();
+
+                }, (Response.ErrorListener) error -> {
+            Log.e("EA", "onCreate: ", error);
+        });
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+        queue.add(request);
     }
 
     @Override
@@ -125,8 +223,11 @@ public class ExerciseActivity extends AppCompatActivity implements
 
     @Override
     public void showActivityInfo(int exID) {
+        FileUtils fileUtils = new FileUtils();
+        String mail = fileUtils.readFile(this, "config.txt");
+
         CharSequence[] options = {getString(R.string.remove)};
-        String[] args = {rID, Integer.toString(exID)};
+        String[] args = {rName, mail, Integer.toString(exID)};
         OptionDialog dialogOption =
                 new OptionDialog(getString(R.string.do_action_menu),options, 1, false, args, null);
         dialogOption.setListener(this);
@@ -161,9 +262,36 @@ public class ExerciseActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onDialogRes(String res, View v) {
-        if (res.equals("00")) {
+    public void onDialogRes(String res, View v, String[] args) {
+        if (res.equals("02")) {
+            String[] keys =  new String[4];
+            Object[] params = new String[4];
+            keys[0] = "param";
+            keys[1] = "name";
+            keys[2] = "mail";
+            keys[3] = "idEj";
+            params[0] = "removeRoutineEx";
+            params[1] = args[0];
+            params[2] = args[1];
+            params[3] = args[2];
+            Data param = ExternalDB.createParam(keys, params);
+            OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
+            WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+                    .observe(this, workInfo -> {
+                        if (workInfo != null && workInfo.getState().isFinished()) {
+                            if (workInfo.getState() != WorkInfo.State.SUCCEEDED) {
+                                MessageDialog d = new MessageDialog("ERROR",
+                                        getString(R.string.error_server));
+                                d.show(getSupportFragmentManager(), "errorDialog");
+                            } else {
+                                reloadFragment();
+                            }
+                        }
+                    });
+            WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
+        } else {
             reloadFragment();
         }
+
     }
 }

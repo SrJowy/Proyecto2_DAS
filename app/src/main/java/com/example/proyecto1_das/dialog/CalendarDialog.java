@@ -14,10 +14,7 @@ import androidx.fragment.app.DialogFragment;
 
 import com.example.proyecto1_das.R;
 import com.example.proyecto1_das.data.Routine;
-import com.example.proyecto1_das.db.MyDB;
-import com.example.proyecto1_das.utils.FileUtils;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,28 +26,26 @@ public class CalendarDialog extends DialogFragment {
 
     private DialogListener listener;
 
-    private String title;
+    private final String title;
 
-    private String day;
+    private final String day;
 
-    private View assocNum;
+    private final View assocNum;
 
-    private List<Routine> lRoutines;
+    private final List<Routine> lRoutines;
 
-    public CalendarDialog(String title, String day, View assocNum) {
+    public CalendarDialog(String title, String day, View assocNum, List<Routine> lRout) {
         this.day = day;
         this.title = title;
         this.assocNum = assocNum;
+        this.lRoutines = lRout;
     }
 
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         super.onCreateDialog(savedInstanceState);
-        MyDB db = new MyDB(getContext());
-        FileUtils fileUtils = new FileUtils();
-        String mail = fileUtils.readFile(getContext(), "config.txt");
-        lRoutines = db.selectRoutines(mail);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(title);
 

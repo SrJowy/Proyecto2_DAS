@@ -20,7 +20,7 @@
     <string name="more_info">Más info</string>
     <string name="add_routine">Añadir nueva rutina</string>
     <string name="routine_name">Nombre de la rutina</string>
-    <string name="routine_des">Routine description</string>
+    <string name="routine_des">Descripción de la rutina</string>
     <string name="save">Guardar</string>
     <string name="val_error">Nombre inválido</string>
     <string name="do_action_menu">Menú acción</string>
@@ -57,4 +57,9 @@
     <string name="FRI">VIE</string>
     <string name="SAT">SAB</string>
     <string name="SUN">DOM</string>
+    <string name="select_routine">Selecciona una rutina</string>
+    <string name="routine_selected">"Rutina seleccionada --> "</string>
+    <string name="take_photo">Saca una foto</string>
+    <string name="routine_desc">Descripción de la rutina</string>
+    <string name="photo_text">Pulsa en la imagen para sacar una nueva foto</string>
 </resources>

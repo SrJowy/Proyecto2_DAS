@@ -34,14 +34,12 @@
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/fragmentContainerView"
-            android:name="com.example.proyecto1_das.exercises.fragments.ExerciseFragment"
             android:layout_width="280dp"
             android:layout_height="340dp"
             android:layout_marginTop="72dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:ignore="MissingConstraints"
-            tools:layout="@layout/fragment_exercise_list" />
+            tools:ignore="MissingConstraints" />
 
         <TextView
             android:id="@+id/tv_exercises"

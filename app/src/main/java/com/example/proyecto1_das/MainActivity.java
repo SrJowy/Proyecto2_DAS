@@ -5,13 +5,11 @@ import static android.Manifest.permission.POST_NOTIFICATIONS;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -22,7 +20,6 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
 import com.example.proyecto1_das.db.ExternalDB;
-import com.example.proyecto1_das.db.MyDB;
 import com.example.proyecto1_das.dialog.MessageDialog;
 import com.example.proyecto1_das.utils.FileUtils;
 import com.example.proyecto1_das.utils.LocaleUtils;
@@ -30,7 +27,6 @@ import com.example.proyecto1_das.utils.ThemeUtils;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 

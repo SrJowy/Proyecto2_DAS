@@ -6,23 +6,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
 import com.example.proyecto1_das.db.ExternalDB;
-import com.example.proyecto1_das.db.MyDB;
 import com.example.proyecto1_das.dialog.MessageDialog;
 import com.example.proyecto1_das.utils.LocaleUtils;
 import com.example.proyecto1_das.utils.ThemeUtils;
 import com.example.proyecto1_das.utils.ValidationUtils;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.play.core.tasks.Task;
 import com.google.firebase.messaging.FirebaseMessaging;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -66,8 +61,7 @@ public class RegisterActivity extends AppCompatActivity {
                 WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
                         .observe(this, workInfo -> {
                             if (workInfo != null && workInfo.getState().isFinished()) {
-                                Integer count = workInfo.getOutputData().getInt("len", 0);
-                                Log.i("count", "onCreate: " + count);
+                                int count = workInfo.getOutputData().getInt("len", 0);
                                 if (count == 1) {
                                     MessageDialog d = new MessageDialog("ERROR", getString(R.string.msg_user_exists));
                                     d.show(getSupportFragmentManager(), "errorDialog");
@@ -79,12 +73,7 @@ public class RegisterActivity extends AppCompatActivity {
                                                     return;
                                                 }
                                                 String token = task.getResult();
-                                                MyDB myDB = new MyDB(this);
-
-                                                myDB.insertUsr(mail, password, name, surname, token, this);
-                                                myDB.close();
-                                                Toast.makeText(this, getString(R.string.msg_success),
-                                                        Toast.LENGTH_LONG).show();
+                                                this.saveUser(mail, password, name, surname, token);
                                                 finish();
                                             });
                                 }
@@ -108,5 +97,43 @@ public class RegisterActivity extends AppCompatActivity {
                 d.show(getSupportFragmentManager(), "errorDialog");
             }
         });
+    }
+
+    private void saveUser(String mail, String password, String name, String surname,
+                          String token) {
+        String[] keys =  new String[6];
+        Object[] params = new String[6];
+        keys[0] = "param";
+        keys[1] = "usr";
+        keys[2] = "pass";
+        keys[3] = "name";
+        keys[4] = "surname";
+        keys[5] = "token";
+        params[0] = "signUp";
+        params[1] = mail;
+        params[2] = password;
+        params[3] = name;
+        params[4] = surname;
+        params[5] = token;
+
+        Data param = ExternalDB.createParam(keys, params);
+        OneTimeWorkRequest oneTimeWorkRequest =
+                new OneTimeWorkRequest.Builder(ExternalDB.class)
+                        .setInputData(param).build();
+        WorkManager.getInstance(this)
+                .getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+                .observe(this, workInfo -> {
+                    if (workInfo != null && workInfo.getState().isFinished()) {
+                        if (workInfo.getState() != WorkInfo.State.SUCCEEDED) {
+                            MessageDialog d = new MessageDialog("ERROR",
+                                    getString(R.string.error_server));
+                            d.show(getSupportFragmentManager(), "errorDialog");
+                        } else {
+                            Toast.makeText(this, getString(R.string.msg_success),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+        WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
     }
 }

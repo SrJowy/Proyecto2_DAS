@@ -34,7 +34,6 @@
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/fragmentContainerView"
-            android:name="com.example.proyecto1_das.exercises.fragments.ExerciseFragment"
             android:layout_width="fill_parent"
             android:layout_height="650dp"
             android:layout_marginTop="80dp"
@@ -42,8 +41,7 @@
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:ignore="MissingConstraints"
-            tools:layout="@layout/fragment_exercise_list" />
+            tools:ignore="MissingConstraints" />
 
         <TextView
             android:id="@+id/tv_exercises"

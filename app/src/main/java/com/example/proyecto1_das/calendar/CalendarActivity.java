@@ -1,17 +1,10 @@
 package com.example.proyecto1_das.calendar;
 
-import android.content.Intent;
-import android.content.res.TypedArray;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.PopupMenu;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,9 +18,8 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
 import com.example.proyecto1_das.R;
-import com.example.proyecto1_das.RoutineActivity;
+import com.example.proyecto1_das.data.Routine;
 import com.example.proyecto1_das.db.ExternalDB;
-import com.example.proyecto1_das.db.MyDB;
 import com.example.proyecto1_das.dialog.CalendarDialog;
 import com.example.proyecto1_das.dialog.MessageDialog;
 import com.example.proyecto1_das.dialog.OptionDialog;
@@ -36,8 +28,6 @@ import com.example.proyecto1_das.utils.LocaleUtils;
 import com.example.proyecto1_das.utils.ThemeUtils;
 
 import java.time.LocalDate;
-import java.time.Month;
-import java.time.Year;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -174,14 +164,10 @@ public class CalendarActivity extends AppCompatActivity implements CalendarAdapt
                                 String[] diary = workInfo.getOutputData().getStringArray(
                                         "diary");
                                 if (diary.length == 0) {
-                                    CalendarDialog calendarDialog = new CalendarDialog(
-                                            "Select routine", dayText, view);
-                                    calendarDialog.setListener(this);
-                                    calendarDialog.show(getSupportFragmentManager(),
-                                            "routineSelector");
+                                    createOptions(dayText, view);
                                 } else {
                                     OptionDialog optionDialog = new OptionDialog(
-                                            "Routine selected --> " + diary[1],
+                                            getString(R.string.routine_selected) + diary[1],
                                             new CharSequence[] {getString(
                                                     R.string.remove)}, 2,
                                             false,
@@ -197,6 +183,49 @@ public class CalendarActivity extends AppCompatActivity implements CalendarAdapt
             WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
         }
 
+
+    }
+
+    private void createOptions(String dayText, View view) {
+        FileUtils fileUtils = new FileUtils();
+        String mail = fileUtils.readFile(this, "config.txt");
+        String[] keys =  new String[2];
+        Object[] params = new String[2];
+        keys[0] = "param";
+        keys[1] = "mail";
+        params[0] = "loadRoutines";
+        params[1] = mail;
+        Data param = ExternalDB.createParam(keys, params);
+        OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+                .observe(this, workInfo -> {
+                    if (workInfo != null && workInfo.getState().isFinished()) {
+                        if (workInfo.getState() != WorkInfo.State.SUCCEEDED) {
+                            MessageDialog d = new MessageDialog("ERROR",
+                                    getString(R.string.error_server));
+                            d.show(getSupportFragmentManager(), "errorDialog");
+                        } else {
+                            Data d = workInfo.getOutputData();
+                            int size = d.getInt("size", 0);
+                            List<Routine> lRoutines = new ArrayList<>();
+                            for (int i = 0; i < size; i++) {
+                                String[] routineRow = d.getStringArray(Integer.toString(i));
+                                Routine r = new Routine();
+                                r.setMail(routineRow[0]);
+                                r.setName(routineRow[1]);
+                                r.setDesc(routineRow[2]);
+                                lRoutines.add(r);
+                            }
+                            CalendarDialog calendarDialog = new CalendarDialog(
+                                    getString(R.string.select_routine), dayText, view, lRoutines);
+                            calendarDialog.setListener(this);
+                            calendarDialog.show(getSupportFragmentManager(),
+                                    "routineSelector");
+                        }
+
+                    }
+                });
+        WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
 
     }
 
@@ -248,7 +277,7 @@ public class CalendarActivity extends AppCompatActivity implements CalendarAdapt
     }
 
     @Override
-    public void onDialogRes(String res, View assocNumView) {
+    public void onDialogRes(String res, View assocNumView, String[] args) {
         if (res.equals("00")) {
             if (ThemeUtils.isLightThemeSet(this)) {
                 assocNumView.setBackgroundColor(ContextCompat.getColor(this, android.R.color.background_light));

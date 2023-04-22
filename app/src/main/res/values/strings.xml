@@ -62,5 +62,10 @@
     <string name="FRI">FRI</string>
     <string name="SAT">SAT</string>
     <string name="SUN">SUN</string>
+    <string name="select_routine">Select a routine</string>
+    <string name="routine_selected">"Routine selected --> "</string>
+    <string name="take_photo">Take a photo</string>
+    <string name="routine_desc">Routine description</string>
+    <string name="photo_text">Click on the image to take a new photo</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

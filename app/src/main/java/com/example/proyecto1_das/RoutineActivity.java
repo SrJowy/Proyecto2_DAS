@@ -21,10 +21,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
 
 import com.example.proyecto1_das.calendar.CalendarActivity;
-import com.example.proyecto1_das.data.Routine;
-import com.example.proyecto1_das.db.MyDB;
+import com.example.proyecto1_das.db.ExternalDB;
+import com.example.proyecto1_das.dialog.MessageDialog;
 import com.example.proyecto1_das.dialog.OptionDialog;
 import com.example.proyecto1_das.exercises.ExerciseActivity;
 import com.example.proyecto1_das.utils.FileUtils;
@@ -34,7 +38,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class RoutineActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener, OptionDialog.DialogListener {
@@ -44,7 +47,39 @@ public class RoutineActivity extends AppCompatActivity implements
             = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == Activity.RESULT_OK) {
-                    addDataToList();
+                    FileUtils fUtils = new FileUtils();
+                    String mail = fUtils.readFile(getApplicationContext(), "config.txt");
+                    lRoutines = new ArrayList<>();
+
+                    String[] keys =  new String[2];
+                    Object[] params = new String[2];
+                    keys[0] = "param";
+                    keys[1] = "mail";
+                    params[0] = "loadRoutines";
+                    params[1] = mail;
+                    Data param = ExternalDB.createParam(keys, params);
+                    OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
+                    WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+                            .observe(this, workInfo -> {
+                                if (workInfo != null && workInfo.getState().isFinished()) {
+                                    if (workInfo.getState() != WorkInfo.State.SUCCEEDED) {
+                                        MessageDialog d = new MessageDialog("ERROR",
+                                                getString(R.string.error_server));
+                                        d.show(getSupportFragmentManager(), "errorDialog");
+                                    } else {
+                                        Data d = workInfo.getOutputData();
+                                        int size = d.getInt("size", 0);
+                                        for (int i = 0; i < size; i++) {
+                                            String[] routineRow = d.getStringArray(Integer.toString(i));
+
+                                            lRoutines.add(routineRow[1] + ": " + routineRow[2]);
+                                        }
+                                        addDataToList(mail);
+                                    }
+
+                                }
+                            });
+                    WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
                 }
             });
     private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -58,7 +93,42 @@ public class RoutineActivity extends AppCompatActivity implements
         ThemeUtils.changeActionBar(this);
         setContentView(R.layout.activity_routine);
 
-        addDataToList();
+        FileUtils fUtils = new FileUtils();
+        String mail = fUtils.readFile(getApplicationContext(), "config.txt");
+        lRoutines = new ArrayList<>();
+
+
+        String[] keys =  new String[2];
+        Object[] params = new String[2];
+        keys[0] = "param";
+        keys[1] = "mail";
+        params[0] = "loadRoutines";
+        params[1] = mail;
+        Data param = ExternalDB.createParam(keys, params);
+        OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+                .observe(this, workInfo -> {
+                    if (workInfo != null && workInfo.getState().isFinished()) {
+                        if (workInfo.getState() != WorkInfo.State.SUCCEEDED) {
+                            MessageDialog d = new MessageDialog("ERROR",
+                                    getString(R.string.error_server));
+                            d.show(getSupportFragmentManager(), "errorDialog");
+                        } else {
+                            Data d = workInfo.getOutputData();
+                            int size = d.getInt("size", 0);
+                            for (int i = 0; i < size; i++) {
+                                String[] routineRow = d.getStringArray(Integer.toString(i));
+
+                                lRoutines.add(routineRow[1] + ": " + routineRow[2]);
+                            }
+                            addDataToList(mail);
+                        }
+
+                    }
+                });
+        WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
+
+
 
         /*
          * Set up hamburger menu
@@ -109,14 +179,8 @@ public class RoutineActivity extends AppCompatActivity implements
      * Adds data to the routine list
      * It is called everytime there is a change in the database
      */
-    private void addDataToList() {
-        FileUtils fUtils = new FileUtils();
-        String mail = fUtils.readFile(getApplicationContext(), "config.txt");
-        if (!mail.isEmpty()) {
-            loadData(mail);
-        } else {
-            lRoutines = new ArrayList<>();
-        }
+    private void addDataToList(String mail) {
+
         ListView lv = findViewById(R.id.lRutinas);
         ArrayAdapter<String> adapter =
                 new ArrayAdapter<>(this,
@@ -124,14 +188,14 @@ public class RoutineActivity extends AppCompatActivity implements
         lv.setAdapter(adapter);
         lv.setOnItemClickListener((adapterView, view, i, l) -> {
             Intent intent = new Intent(this, ExerciseActivity.class);
-            intent.putExtra("RID",
+            intent.putExtra("rName",
                     ((TextView) view).getText().toString().split(":")[0]);
             startActivity(intent);
         });
         lv.setOnItemLongClickListener((adapterView, view, i, l) -> {
             CharSequence[] options = {getString(R.string.remove)};
             String[] args = {mail, ((TextView) view).getText()
-                    .toString().split(":")[1].trim()};
+                    .toString().split(":")[0].trim()};
             OptionDialog dialogOption =
                     new OptionDialog(getString(R.string.do_action_menu), options,
                             0, false, args, null);
@@ -139,16 +203,6 @@ public class RoutineActivity extends AppCompatActivity implements
             dialogOption.show(getSupportFragmentManager(), "dialogRoutine");
             return true;
         });
-    }
-
-    private void loadData(String mail) {
-        MyDB dbManager = new MyDB(this);
-        List<Routine> lRoutinesDB = dbManager.loadRoutines(mail);
-        lRoutines = new ArrayList<String>();
-        for (Routine r : lRoutinesDB) {
-            lRoutines.add(r.getId() + ": " + r.getDesc());
-        }
-        dbManager.close();
     }
 
     @Override
@@ -182,20 +236,52 @@ public class RoutineActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onDialogRes(String res, View v) {
+    public void onDialogRes(String res, View v, String[] args) {
         if (res.equals("00")) {
-            addDataToList();
-            NotificationCompat.Builder elBuilder =
-                    new NotificationCompat.Builder(this, "pock_rout");
-            elBuilder.setSmallIcon(android.R.drawable.stat_sys_warning)
-                    .setContentTitle(getString(R.string.notif_title_alert))
-                    .setContentText(getString(R.string.notif_msg_alert))
-                    .setSubText(getString(R.string.notif_data_changes))
-                    .setVibrate(new long[]{0, 1000, 500, 1000})
-                    .setAutoCancel(true);
-            NotificationManager manager =
-                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.notify(1, elBuilder.build());
+            FileUtils fUtils = new FileUtils();
+            String mail = fUtils.readFile(getApplicationContext(), "config.txt");
+            lRoutines = new ArrayList<>();
+
+            String[] keys =  new String[2];
+            Object[] params = new String[2];
+            keys[0] = "param";
+            keys[1] = "mail";
+            params[0] = "loadRoutines";
+            params[1] = mail;
+            Data param = ExternalDB.createParam(keys, params);
+            OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
+            WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+                    .observe(this, workInfo -> {
+                        if (workInfo != null && workInfo.getState().isFinished()) {
+                            if (workInfo.getState() != WorkInfo.State.SUCCEEDED) {
+                                MessageDialog d = new MessageDialog("ERROR",
+                                        getString(R.string.error_server));
+                                d.show(getSupportFragmentManager(), "errorDialog");
+                            } else {
+                                Data d = workInfo.getOutputData();
+                                int size = d.getInt("size", 0);
+                                for (int i = 0; i < size; i++) {
+                                    String[] routineRow = d.getStringArray(Integer.toString(i));
+
+                                    lRoutines.add(routineRow[1] + ": " + routineRow[2]);
+                                }
+                                addDataToList(mail);
+                                NotificationCompat.Builder elBuilder =
+                                        new NotificationCompat.Builder(this, "pock_rout");
+                                elBuilder.setSmallIcon(android.R.drawable.stat_sys_warning)
+                                        .setContentTitle(getString(R.string.notif_title_alert))
+                                        .setContentText(getString(R.string.notif_msg_alert))
+                                        .setSubText(getString(R.string.notif_data_changes))
+                                        .setVibrate(new long[]{0, 1000, 500, 1000})
+                                        .setAutoCancel(true);
+                                NotificationManager manager =
+                                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                                manager.notify(1, elBuilder.build());
+                            }
+
+                        }
+                    });
+            WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
         }
     }
 }

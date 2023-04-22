@@ -1,16 +1,16 @@
 package com.example.proyecto1_das.data;
 
 public class Routine {
-    private Integer id;
+    private String name;
     private String mail;
     private String desc;
 
-    public Integer getId() {
-        return id;
+    public String getName() {
+        return name;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getMail() {
