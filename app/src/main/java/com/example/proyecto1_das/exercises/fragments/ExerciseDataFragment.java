@@ -1,11 +1,18 @@
 package com.example.proyecto1_das.exercises.fragments;
 
+import static android.Manifest.permission.CAMERA;
+
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import android.util.Log;
@@ -15,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -24,6 +32,7 @@ import com.android.volley.toolbox.Volley;
 import com.example.proyecto1_das.PhotoActivity;
 import com.example.proyecto1_das.R;
 import com.example.proyecto1_das.data.Exercise;
+import com.example.proyecto1_das.db.ExternalDB;
 import com.example.proyecto1_das.utils.LocaleUtils;
 
 import org.json.JSONArray;
@@ -35,6 +44,8 @@ import java.util.List;
 
 public class ExerciseDataFragment extends Fragment {
     private int exID;
+
+    private ActivityResultLauncher<String> requestPermissionLauncher;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -53,7 +64,7 @@ public class ExerciseDataFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         String lang = LocaleUtils.getLanguage(getContext());
 
-        String url = "http://192.168.1.150:5000/exercise";
+        String url = "http://" + ExternalDB.getIp() + ":5000/exercise";
         JSONObject requestBody = new JSONObject();
 
         try {
@@ -63,8 +74,24 @@ public class ExerciseDataFragment extends Fragment {
             throw new RuntimeException(e);
         }
 
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, requestBody,
-                response -> {
+        requestPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        Intent intent = new Intent(getActivity(),
+                                PhotoActivity.class);
+                        intent.putExtra("exID", exID);
+                        startActivity(intent);
+                    } else {
+
+                        Toast.makeText(getActivity(),
+                                getString(R.string.permission_denied),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url,
+                requestBody, response -> {
                     List<Exercise> lEx = transformJson(response);
 
                     if (!lEx.isEmpty()) {
@@ -86,16 +113,23 @@ public class ExerciseDataFragment extends Fragment {
 
                         Button b = getView().findViewById(R.id.moreinfobutton);
                         b.setOnClickListener(c -> {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(e.getLink()));
+                            Intent intent = new Intent(Intent.ACTION_VIEW,
+                                    Uri.parse(e.getLink()));
                             intent.addCategory(Intent.CATEGORY_BROWSABLE);
                             startActivity(intent);
                         });
 
                         Button photoButton = getView().findViewById(R.id.save_foto);
                         photoButton.setOnClickListener(c -> {
-                            Intent intent = new Intent(getActivity(), PhotoActivity.class);
-                            intent.putExtra("exID", exID);
-                            startActivity(intent);
+                            if (ContextCompat.checkSelfPermission(getContext(), CAMERA) !=
+                                    PackageManager.PERMISSION_GRANTED) {
+                                requestPermissionLauncher.launch(CAMERA);
+                            } else {
+                                Intent intent = new Intent(getActivity(),
+                                        PhotoActivity.class);
+                                intent.putExtra("exID", exID);
+                                startActivity(intent);
+                            }
                         });
 
                         setImage(exID);
@@ -140,7 +174,7 @@ public class ExerciseDataFragment extends Fragment {
     public void setData2(int exID) {
         String lang = LocaleUtils.getLanguage(getContext());
 
-        String url = "http://192.168.1.150:5000/exercise";
+        String url = "http://" + ExternalDB.getIp() + ":5000/exercise";
         JSONObject requestBody = new JSONObject();
 
         try {
@@ -150,8 +184,8 @@ public class ExerciseDataFragment extends Fragment {
             throw new RuntimeException(e);
         }
 
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, requestBody,
-                (Response.Listener<JSONObject>) response -> {
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url,
+                requestBody, response -> {
                     List<Exercise> lEx = transformJson(response);
 
                     if (!lEx.isEmpty()) {
@@ -173,22 +207,29 @@ public class ExerciseDataFragment extends Fragment {
 
                         Button b = getView().findViewById(R.id.moreinfobutton);
                         b.setOnClickListener(c -> {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(e.getLink()));
+                            Intent intent = new Intent(Intent.ACTION_VIEW,
+                                    Uri.parse(e.getLink()));
                             intent.addCategory(Intent.CATEGORY_BROWSABLE);
                             startActivity(intent);
                         });
 
                         Button photoButton = getView().findViewById(R.id.save_foto);
                         photoButton.setOnClickListener(c -> {
-                            Intent intent = new Intent(getActivity(), PhotoActivity.class);
-                            intent.putExtra("exID", exID);
-                            startActivity(intent);
+                            if (ContextCompat.checkSelfPermission(getContext(), CAMERA) !=
+                                    PackageManager.PERMISSION_GRANTED) {
+                                requestPermissionLauncher.launch(CAMERA);
+                            } else {
+                                Intent intent = new Intent(getActivity(),
+                                        PhotoActivity.class);
+                                intent.putExtra("exID", exID);
+                                startActivity(intent);
+                            }
                         });
 
                         setImage(exID);
                     }
 
-                }, (Response.ErrorListener) error -> {
+                }, error -> {
                     Log.e("EDF", "onCreate: ", error);
                 });
 

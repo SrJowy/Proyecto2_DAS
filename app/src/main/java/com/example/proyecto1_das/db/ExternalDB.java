@@ -23,8 +23,11 @@ import java.util.ArrayList;
 
 public class ExternalDB extends Worker {
 
-    String ipPC = "192.168.49.1";
-    String myip = "192.168.1.150";
+    private static final String IP = "161.35.34.173";
+
+    public static String getIp() {
+        return IP;
+    }
 
     public ExternalDB(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -37,7 +40,7 @@ public class ExternalDB extends Worker {
         assert action != null;
         switch (action) {
             case "signUp": {
-                String dir = "http://" + myip + ":5000/users/create";
+                String dir = "http://" + IP + ":5000/users/create";
                 HttpURLConnection urlConnection;
 
                 String mail = getInputData().getString("usr");
@@ -91,7 +94,7 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "userExists": {
-                String dir = "http://" + myip + ":5000/users";
+                String dir = "http://" + IP + ":5000/users";
                 HttpURLConnection urlConnection = null;
 
                 String mail = getInputData().getString("mail");
@@ -141,7 +144,7 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "signIn": {
-                String dir = "http://" + myip + ":5000/users";
+                String dir = "http://" + IP + ":5000/users";
                 HttpURLConnection urlConnection = null;
 
                 String mail = getInputData().getString("mail");
@@ -192,7 +195,7 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "routineDate": {
-                String dir = "http://" + myip + ":5000/diary/create";
+                String dir = "http://" + IP + ":5000/diary/create";
                 HttpURLConnection urlConnection = null;
 
                 String mail = getInputData().getString("mail");
@@ -243,7 +246,7 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "selectDiary": {
-                String dir = "http://" + myip + ":5000/diary";
+                String dir = "http://" + IP + ":5000/diary";
                 HttpURLConnection urlConnection = null;
 
                 String mail = getInputData().getString("mail");
@@ -297,7 +300,7 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "removeDiary": {
-                String dir = "http://" + myip + ":5000/diary";
+                String dir = "http://" + IP + ":5000/diary";
                 HttpURLConnection urlConnection = null;
 
                 String mail = getInputData().getString("mail");
@@ -343,7 +346,7 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "findDiaries": {
-                String dir = "http://" + myip + ":5000/diary";
+                String dir = "http://" + IP + ":5000/diary";
                 HttpURLConnection urlConnection = null;
 
                 String mail = getInputData().getString("mail");
@@ -402,7 +405,7 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "insertRoutine": {
-                String dir = "http://" + myip + ":5000/routine/create";
+                String dir = "http://" + IP + ":5000/routine/create";
                 HttpURLConnection urlConnection = null;
 
                 String mail = getInputData().getString("mail");
@@ -450,7 +453,7 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "loadRoutines": {
-                String dir = "http://" + myip + ":5000/routine";
+                String dir = "http://" + IP + ":5000/routine";
                 HttpURLConnection urlConnection = null;
 
                 String mail = getInputData().getString("mail");
@@ -508,7 +511,7 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "removeRoutine": {
-                String dir = "http://" + myip + ":5000/routine";
+                String dir = "http://" + IP + ":5000/routine";
                 HttpURLConnection urlConnection = null;
 
                 String mail = getInputData().getString("mail");
@@ -554,7 +557,7 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "removeRoutineEx": {
-                String dir = "http://" + myip + ":5000/routine-ex";
+                String dir = "http://" + IP + ":5000/routine-ex";
                 HttpURLConnection urlConnection = null;
 
                 String mail = getInputData().getString("mail");
@@ -603,7 +606,7 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "insertEjRoutine": {
-                String dir = "http://" + myip + ":5000/routine-ex/create";
+                String dir = "http://" + IP + ":5000/routine-ex/create";
                 HttpURLConnection urlConnection = null;
 
                 String mail = getInputData().getString("mail");
@@ -651,7 +654,7 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "saveImage": {
-                String dir = "http://" + myip + ":5000/image/create";
+                String dir = "http://" + IP + ":5000/image/create";
                 HttpURLConnection urlConnection = null;
 
                 String mail = getInputData().getString("mail");

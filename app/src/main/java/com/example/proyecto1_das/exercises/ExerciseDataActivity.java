@@ -1,19 +1,28 @@
 package com.example.proyecto1_das.exercises;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.proyecto1_das.MainActivity;
 import com.example.proyecto1_das.OptionsActivity;
 import com.example.proyecto1_das.R;
+import com.example.proyecto1_das.calendar.CalendarActivity;
 import com.example.proyecto1_das.exercises.fragments.ExerciseDataFragment;
+import com.example.proyecto1_das.gym.GymFinderActivity;
 import com.example.proyecto1_das.utils.LocaleUtils;
 import com.example.proyecto1_das.utils.ThemeUtils;
 import com.google.android.material.navigation.NavigationView;
@@ -22,6 +31,8 @@ public class ExerciseDataActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener {
 
     private ActionBarDrawerToggle actionBarDrawerToggle;
+    private ActivityResultLauncher<String> requestPermissionLauncher;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +67,19 @@ public class ExerciseDataActivity extends AppCompatActivity implements
         n.bringToFront();
         n.setNavigationItemSelectedListener(this);
 
+        requestPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        Intent i = new Intent(this, GymFinderActivity.class);
+                        startActivity(i);
+                    } else {
+                        Toast.makeText(this,
+                                getString(R.string.permission_denied),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+
     }
 
     @Override
@@ -80,6 +104,17 @@ public class ExerciseDataActivity extends AppCompatActivity implements
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
                         | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+            }
+        } else if (R.id.nav_calendar == item.getItemId()) {
+            Intent i = new Intent(this, CalendarActivity.class);
+            startActivity(i);
+        } else if (R.id.nav_gyms == item.getItemId()) {
+            if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissionLauncher.launch(ACCESS_FINE_LOCATION);
+            } else {
+                Intent i = new Intent(this, GymFinderActivity.class);
+                startActivity(i);
             }
         }
         return true;

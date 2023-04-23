@@ -1,10 +1,13 @@
 package com.example.proyecto1_das.exercises;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.work.Data;
@@ -14,12 +17,14 @@ import androidx.work.WorkManager;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -29,12 +34,14 @@ import com.android.volley.toolbox.Volley;
 import com.example.proyecto1_das.MainActivity;
 import com.example.proyecto1_das.OptionsActivity;
 import com.example.proyecto1_das.R;
+import com.example.proyecto1_das.calendar.CalendarActivity;
 import com.example.proyecto1_das.data.Exercise;
 import com.example.proyecto1_das.db.ExternalDB;
 import com.example.proyecto1_das.dialog.MessageDialog;
 import com.example.proyecto1_das.dialog.OptionDialog;
 import com.example.proyecto1_das.exercises.fragments.ExerciseDataFragment;
 import com.example.proyecto1_das.exercises.fragments.ExerciseFragment;
+import com.example.proyecto1_das.gym.GymFinderActivity;
 import com.example.proyecto1_das.utils.FileUtils;
 import com.example.proyecto1_das.utils.LocaleUtils;
 import com.example.proyecto1_das.utils.ThemeUtils;
@@ -54,6 +61,7 @@ public class ExerciseActivity extends AppCompatActivity implements
 
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private String rName;
+    private ActivityResultLauncher<String> requestPermissionLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +81,7 @@ public class ExerciseActivity extends AppCompatActivity implements
             FileUtils fileUtils = new FileUtils();
             String mail = fileUtils.readFile(this, "config.txt");
 
-            String url = "http://192.168.1.150:5000/exercise";
+            String url = "http://" + ExternalDB.getIp() + ":5000/exercise";
             JSONObject requestBody = new JSONObject();
 
             try {
@@ -133,6 +141,19 @@ public class ExerciseActivity extends AppCompatActivity implements
             i.putExtra("rName", rName);
             activityResultLauncher.launch(i);
         });
+
+        requestPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        Intent i = new Intent(this, GymFinderActivity.class);
+                        startActivity(i);
+                    } else {
+                        Toast.makeText(this,
+                                getString(R.string.permission_denied),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(
@@ -173,7 +194,7 @@ public class ExerciseActivity extends AppCompatActivity implements
         FileUtils fileUtils = new FileUtils();
         String mail = fileUtils.readFile(this, "config.txt");
 
-        String url = "http://192.168.1.150:5000/exercise";
+        String url = "http://" + ExternalDB.getIp() + ":5000/exercise";
         JSONObject requestBody = new JSONObject();
 
         try {
@@ -185,7 +206,7 @@ public class ExerciseActivity extends AppCompatActivity implements
         }
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, requestBody,
-                (Response.Listener<JSONObject>) response -> {
+                response -> {
                     Log.i("EA", "onCreate: " + response);
 
                     List<Exercise> lExercises = transformJson(response);
@@ -256,6 +277,17 @@ public class ExerciseActivity extends AppCompatActivity implements
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
                         | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+            }
+        } else if (R.id.nav_calendar == item.getItemId()) {
+            Intent i = new Intent(this, CalendarActivity.class);
+            startActivity(i);
+        } else if (R.id.nav_gyms == item.getItemId()) {
+            if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissionLauncher.launch(ACCESS_FINE_LOCATION);
+            } else {
+                Intent i = new Intent(this, GymFinderActivity.class);
+                startActivity(i);
             }
         }
         return true;

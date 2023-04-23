@@ -62,4 +62,11 @@
     <string name="take_photo">Take a photo</string>
     <string name="routine_desc">Routine description</string>
     <string name="photo_text">Click on the image to take a new photo</string>
+    <string name="app_widget_description">Your routine assigned for today</string>
+    <string name="n_a">N/A</string>
+    <string name="remember_call_text">"Remember calling: "</string>
+    <string name="reminder_gym">Reminder to call a gym</string>
+    <string name="update_caps">UPDATE</string>
+    <string name="date_str">date</string>
+    <string name="permission_denied">Permission denied</string>
 </resources>

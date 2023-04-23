@@ -12,6 +12,10 @@
         android:title="@string/calendar" />
 
     <item
+        android:id="@+id/nav_gyms"
+        android:title="Gyms" />
+
+    <item
         android:id="@+id/nav_settings"
         android:title="@string/Settings" />
 

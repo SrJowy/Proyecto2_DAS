@@ -62,4 +62,11 @@
     <string name="take_photo">Saca una foto</string>
     <string name="routine_desc">Descripción de la rutina</string>
     <string name="photo_text">Pulsa en la imagen para sacar una nueva foto</string>
+    <string name="app_widget_description">Tu rutina asignada para hoy</string>
+    <string name="n_a">N/A</string>
+    <string name="remember_call_text">"Recuerda llamar: "</string>
+    <string name="reminder_gym">Recordatorio para llamar un gimnasio</string>
+    <string name="update_caps">ACTUALIZAR</string>
+    <string name="date_str">fecha</string>
+    <string name="permission_denied">Permiso denegado</string>
 </resources>

@@ -53,7 +53,7 @@ public class AddExerciseActivity extends AppCompatActivity {
             rName = bundle.getString("rName");
         }
 
-        String url = "http://192.168.1.150:5000/exercise";
+        String url = "http://" + ExternalDB.getIp() + ":5000/exercise";
         JSONObject requestBody = new JSONObject();
         String lang = LocaleUtils.getLanguage(this);
 
@@ -63,14 +63,14 @@ public class AddExerciseActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
 
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, requestBody,
-                (Response.Listener<JSONObject>) response -> {
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url,
+                requestBody, response -> {
                     Log.i("AEA", "onCreate: " + response);
                     List<Exercise> lExercises = transformJson(response);
                     Log.i("AEA", "onCreate: " + lExercises.size());
                     checkExercisesInRoutine(rName, lang, lExercises);
 
-                }, (Response.ErrorListener) error -> {
+                }, error -> {
                     Log.e("AEA", "onCreate: ", error);
                 });
 
@@ -106,7 +106,7 @@ public class AddExerciseActivity extends AppCompatActivity {
         FileUtils fileUtils = new FileUtils();
         String mail = fileUtils.readFile(this, "config.txt");
 
-        String url = "http://192.168.1.150:5000/exercise";
+        String url = "http://" + ExternalDB.getIp() + ":5000/exercise";
         JSONObject requestBody = new JSONObject();
 
         try {
@@ -117,8 +117,8 @@ public class AddExerciseActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
 
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, requestBody,
-                (Response.Listener<JSONObject>) response -> {
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url,
+                requestBody, response -> {
                     Log.i("AEA", "checkExercisesInRoutine: " + response);
                     List<Exercise> lExercisesInRoutine = transformJson(response);
                     lEx = new ArrayList<>();
@@ -129,7 +129,6 @@ public class AddExerciseActivity extends AppCompatActivity {
                             .collect(Collectors.toList());
 
                     lExercises.removeAll(elsToRemove);
-                    Log.i("AEA", "checkExercisesInRoutine: " + lExercises.size());
                     for (Exercise e : lExercises) {
                         String exName = e.getName();
                         lEx.add(exName);
@@ -166,8 +165,8 @@ public class AddExerciseActivity extends AppCompatActivity {
                         }
                     });
 
-                }, (Response.ErrorListener) error -> {
-                    Log.e("checkExercisesInRoutine", "onCreate: ", error);
+                }, error -> {
+                    Log.e("AEA", "onCreate: ", error);
                 });
 
         RequestQueue queue = Volley.newRequestQueue(this);

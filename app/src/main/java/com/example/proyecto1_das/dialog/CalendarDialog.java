@@ -65,6 +65,7 @@ public class CalendarDialog extends DialogFragment {
         });
 
         builder.setView(v);
+        builder.setNegativeButton(getString(R.string.exit), (dialogInterface, i) -> dismiss());
 
         return builder.create();
     }

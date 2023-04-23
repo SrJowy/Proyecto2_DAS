@@ -18,12 +18,14 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
+import android.view.MenuItem;
 import android.widget.ImageView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.proyecto1_das.db.ExternalDB;
 import com.example.proyecto1_das.utils.FileUtils;
 import com.example.proyecto1_das.utils.LocaleUtils;
 import com.example.proyecto1_das.utils.ThemeUtils;
@@ -35,6 +37,9 @@ import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/*
+ * Activity that manages the photos
+ */
 public class PhotoActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> imageCaptureLauncher;
 
@@ -49,22 +54,20 @@ public class PhotoActivity extends AppCompatActivity {
         LocaleUtils.initialize(getBaseContext());
         ThemeUtils.changeTheme(this);
         ThemeUtils.changeActionBar(this);
+        ThemeUtils.setBackArrow(this);
         setContentView(R.layout.activity_photo);
 
         imageView = findViewById(R.id.taken_photo);
 
-        if (ContextCompat.checkSelfPermission(this, CAMERA) !=
-                PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new
-                    String[]{CAMERA}, 33);
-        }
+
 
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             exID = bundle.getInt("exID");
         }
 
-        imageCaptureLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+        imageCaptureLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getResultCode() == RESULT_OK) {
                 Intent data = result.getData();
                 Bundle extras = data.getExtras();
@@ -72,17 +75,20 @@ public class PhotoActivity extends AppCompatActivity {
 
                 Bitmap rescaledImage = adjustImageSize(bitmap);
                 imageView.setImageBitmap(rescaledImage);
-                String imageFileName = "IMG_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                MediaStore.Images.Media.insertImage(getContentResolver(), bitmap, imageFileName, null);
+                String imageFileName =
+                        "IMG_" + new SimpleDateFormat("yyyyMMdd_HHmmss")
+                                .format(new Date());
+                MediaStore.Images.Media.insertImage(getContentResolver(), bitmap,
+                        imageFileName, null);
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 50, stream);
                 byte[] byteArray = stream.toByteArray();
                 String photo64 = Base64.encodeToString(byteArray,Base64.DEFAULT);
 
                 FileUtils fileUtils = new FileUtils();
                 String mail = fileUtils.readFile(this, "config.txt");
 
-                String url = "http://192.168.1.150:5000/image/create";
+                String url = "http://" + ExternalDB.getIp() + ":5000/image/create";
                 JSONObject requestBody = new JSONObject();
 
                 try {
@@ -93,8 +99,8 @@ public class PhotoActivity extends AppCompatActivity {
                     throw new RuntimeException(e);
                 }
 
-                JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, requestBody,
-                        response -> {
+                JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST,
+                        url, requestBody, response -> {
 
                         }, error -> {
                     Log.e("PA", "onCreate: ", error);
@@ -108,7 +114,7 @@ public class PhotoActivity extends AppCompatActivity {
         FileUtils fileUtils = new FileUtils();
         String mail = fileUtils.readFile(this, "config.txt");
 
-        String url = "http://192.168.1.150:5000/image";
+        String url = "http://" + ExternalDB.getIp() + ":5000/image";
         JSONObject requestBody = new JSONObject();
 
         try {
@@ -118,13 +124,14 @@ public class PhotoActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
 
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, requestBody,
-                response -> {
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url,
+                requestBody, response -> {
                     try {
                         if (!response.get("result").equals("null")) {
                             String image64 = response.getString("result");
                             byte[] b = Base64.decode(image64, Base64.DEFAULT);
-                            Bitmap bitmap = BitmapFactory.decodeByteArray(b,0, b.length);
+                            Bitmap bitmap = BitmapFactory.decodeByteArray(b,0,
+                                    b.length);
                             Bitmap rescaledImage = adjustImageSize(bitmap);
                             imageView.setImageBitmap(rescaledImage);
                         } else {
@@ -172,6 +179,15 @@ public class PhotoActivity extends AppCompatActivity {
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             imageCaptureLauncher.launch(takePictureIntent);
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            this.finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
 }
