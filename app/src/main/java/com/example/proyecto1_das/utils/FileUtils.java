@@ -13,11 +13,7 @@ public class FileUtils {
     public boolean sessionExists(Context context, String file) {
         String ret = readFile(context, file);
 
-        if (ret.isEmpty()) {
-            return false;
-        } else {
-            return true;
-        }
+        return !ret.isEmpty();
     }
     /*
      * Code extracted and adapted from StackOverflow (User: Iarsaars)
@@ -32,7 +28,7 @@ public class FileUtils {
             if (inputStream != null) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                String receiveString = "";
+                String receiveString;
                 StringBuilder stringBuilder = new StringBuilder();
 
                 while ((receiveString = bufferedReader.readLine()) != null) {
@@ -43,9 +39,9 @@ public class FileUtils {
                 ret = stringBuilder.toString();
             }
         } catch (FileNotFoundException e) {
-            Log.e("login activity", "File not found: " + e.toString());
+            Log.e("login activity", "File not found: " + e);
         } catch (IOException e) {
-            Log.e("login activity", "Can not read file: " + e.toString());
+            Log.e("login activity", "Can not read file: " + e);
         }
 
         return ret.replaceAll("\\s", "");

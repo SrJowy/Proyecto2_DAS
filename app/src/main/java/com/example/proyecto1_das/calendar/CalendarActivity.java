@@ -18,6 +18,7 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
 import com.example.proyecto1_das.R;
+import com.example.proyecto1_das.data.Day;
 import com.example.proyecto1_das.data.Routine;
 import com.example.proyecto1_das.db.ExternalDB;
 import com.example.proyecto1_das.dialog.CalendarDialog;
@@ -34,7 +35,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class CalendarActivity extends AppCompatActivity implements CalendarAdapter.OnItemListener, CalendarDialog.DialogListener, OptionDialog.DialogListener{
+/*
+ * Code extracted and adapted from StackOverflow (User: callumhilldeveloper)
+ * https://github.com/codeWithCal/CalendarTutorialAndroidStudio
+ */
+public class CalendarActivity extends AppCompatActivity implements
+        CalendarAdapter.OnItemListener, CalendarDialog.DialogListener,
+        OptionDialog.DialogListener{
 
     private TextView monthYearText;
     private RecyclerView calendarRecyclerView;
@@ -74,8 +81,13 @@ public class CalendarActivity extends AppCompatActivity implements CalendarAdapt
         params[2] = Integer.toString(selectedDate.getMonthValue());
         params[3] = Integer.toString(selectedDate.getYear());
         Data param = ExternalDB.createParam(keys, params);
-        OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
-        WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+
+        // HTTP Request to retrieve user's routine for every day of the month
+        OneTimeWorkRequest oneTimeWorkRequest =
+                new OneTimeWorkRequest.Builder(ExternalDB.class)
+                        .setInputData(param).build();
+        WorkManager.getInstance(this)
+                .getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
                 .observe(this, workInfo -> {
                     if (workInfo != null && workInfo.getState().isFinished()) {
                         if (workInfo.getState() != WorkInfo.State.SUCCEEDED) {
@@ -85,10 +97,13 @@ public class CalendarActivity extends AppCompatActivity implements CalendarAdapt
                         } else {
                             String[] days = workInfo.getOutputData().getStringArray(
                                     "days");
-                            ArrayList<Day> daysInMonth = daysInMonthArray(selectedDate, days);
+                            ArrayList<Day> daysInMonth =
+                                    daysInMonthArray(selectedDate, days);
 
-                            CalendarAdapter calendarAdapter = new CalendarAdapter(daysInMonth, this);
-                            RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), 7);
+                            CalendarAdapter calendarAdapter =
+                                    new CalendarAdapter(daysInMonth, this);
+                            RecyclerView.LayoutManager layoutManager =
+                                    new GridLayoutManager(getApplicationContext(), 7);
                             calendarRecyclerView.setLayoutManager(layoutManager);
                             calendarRecyclerView.setAdapter(calendarAdapter);
                         }
@@ -97,7 +112,9 @@ public class CalendarActivity extends AppCompatActivity implements CalendarAdapt
         WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
 
     }
-
+    /*
+     * Creates the array with the Days of the month
+     */
     private ArrayList<Day> daysInMonthArray(LocalDate date, String[] days) {
         ArrayList<Day> daysInMonthArray = new ArrayList<>();
         YearMonth yearMonth = YearMonth.from(date);
@@ -136,6 +153,9 @@ public class CalendarActivity extends AppCompatActivity implements CalendarAdapt
         setMonthView();
     }
 
+    /*
+     * Manages onClick action on every number
+     */
     @Override
     public void onItemClick(int position, String dayText, View view) {
         if(!dayText.equals("")) {
@@ -152,6 +172,8 @@ public class CalendarActivity extends AppCompatActivity implements CalendarAdapt
             params[1] = mail;
             params[2] = dateString;
             Data param = ExternalDB.createParam(keys, params);
+
+            // HTTP Request to check if the user has a routine selected for that day
             OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
             WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
                     .observe(this, workInfo -> {
@@ -163,9 +185,12 @@ public class CalendarActivity extends AppCompatActivity implements CalendarAdapt
                             } else {
                                 String[] diary = workInfo.getOutputData().getStringArray(
                                         "diary");
+                                assert diary != null;
                                 if (diary.length == 0) {
+                                    // There's no routine for that day
                                     createOptions(dayText, view);
                                 } else {
+                                    //There's a routine set for that day
                                     OptionDialog optionDialog = new OptionDialog(
                                             getString(R.string.routine_selected) + diary[1],
                                             new CharSequence[] {getString(
@@ -186,6 +211,9 @@ public class CalendarActivity extends AppCompatActivity implements CalendarAdapt
 
     }
 
+    /*
+     * Creates a Calendar Dialog with all the routines available to the user
+     */
     private void createOptions(String dayText, View view) {
         FileUtils fileUtils = new FileUtils();
         String mail = fileUtils.readFile(this, "config.txt");
@@ -196,9 +224,11 @@ public class CalendarActivity extends AppCompatActivity implements CalendarAdapt
         params[0] = "loadRoutines";
         params[1] = mail;
         Data param = ExternalDB.createParam(keys, params);
-        OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
-        WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
-                .observe(this, workInfo -> {
+        OneTimeWorkRequest oneTimeWorkRequest =
+                new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param)
+                        .build();
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest
+                        .getId()).observe(this, workInfo -> {
                     if (workInfo != null && workInfo.getState().isFinished()) {
                         if (workInfo.getState() != WorkInfo.State.SUCCEEDED) {
                             MessageDialog d = new MessageDialog("ERROR",
@@ -209,7 +239,8 @@ public class CalendarActivity extends AppCompatActivity implements CalendarAdapt
                             int size = d.getInt("size", 0);
                             List<Routine> lRoutines = new ArrayList<>();
                             for (int i = 0; i < size; i++) {
-                                String[] routineRow = d.getStringArray(Integer.toString(i));
+                                String[] routineRow =
+                                        d.getStringArray(Integer.toString(i));
                                 Routine r = new Routine();
                                 r.setMail(routineRow[0]);
                                 r.setName(routineRow[1]);
@@ -244,6 +275,9 @@ public class CalendarActivity extends AppCompatActivity implements CalendarAdapt
         return super.onOptionsItemSelected(item);
     }
 
+    /*
+     * Saves an entry on DIARY table changing the background color of the number to red
+     */
     @Override
     public void onRoutineClick(String routine, String day, View assocNumView) {
         FileUtils fileUtils = new FileUtils();
@@ -276,6 +310,9 @@ public class CalendarActivity extends AppCompatActivity implements CalendarAdapt
         WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
     }
 
+    /*
+     * After removing a routine from a day, it changes the color of the background
+     */
     @Override
     public void onDialogRes(String res, View assocNumView, String[] args) {
         if (res.equals("00")) {

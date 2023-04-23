@@ -22,7 +22,7 @@
     <string name="routine_name">Nombre de la rutina</string>
     <string name="routine_des">Descripción de la rutina</string>
     <string name="save">Guardar</string>
-    <string name="val_error">Nombre inválido</string>
+    <string name="val_error">Nombre o descripción inválidos</string>
     <string name="do_action_menu">Menú acción</string>
     <string name="remove">Eliminar</string>
     <string name="exit">SALIR</string>

@@ -21,6 +21,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+/*
+ *  Manages the connection to the backend
+ */
 public class ExternalDB extends Worker {
 
     private static final String IP = "161.35.34.173";
@@ -40,6 +43,11 @@ public class ExternalDB extends Worker {
         assert action != null;
         switch (action) {
             case "signUp": {
+
+                /*
+                 *  HTTP Request to insert a user into USERS table
+                 */
+
                 String dir = "http://" + IP + ":5000/users/create";
                 HttpURLConnection urlConnection;
 
@@ -94,6 +102,11 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "userExists": {
+
+                /*
+                 *  HTTP Request to check if a user exists
+                 */
+
                 String dir = "http://" + IP + ":5000/users";
                 HttpURLConnection urlConnection = null;
 
@@ -144,6 +157,11 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "signIn": {
+
+                /*
+                 *  HTTP Request to retrieve data from USERS table
+                 */
+
                 String dir = "http://" + IP + ":5000/users";
                 HttpURLConnection urlConnection = null;
 
@@ -195,6 +213,11 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "routineDate": {
+
+                /*
+                 *  HTTP Request to insert data in DIARY table
+                 */
+
                 String dir = "http://" + IP + ":5000/diary/create";
                 HttpURLConnection urlConnection = null;
 
@@ -246,6 +269,11 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "selectDiary": {
+
+                /*
+                 *  HTTP Request to retrieve data from DIARY table
+                 */
+
                 String dir = "http://" + IP + ":5000/diary";
                 HttpURLConnection urlConnection = null;
 
@@ -300,6 +328,11 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "removeDiary": {
+
+                /*
+                 *  HTTP Request to remove data from DIARY table
+                 */
+
                 String dir = "http://" + IP + ":5000/diary";
                 HttpURLConnection urlConnection = null;
 
@@ -346,6 +379,11 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "findDiaries": {
+
+                /*
+                 *  HTTP Request to retrieve data from DIARY table
+                 */
+
                 String dir = "http://" + IP + ":5000/diary";
                 HttpURLConnection urlConnection = null;
 
@@ -405,6 +443,11 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "insertRoutine": {
+
+                /*
+                 *  HTTP Request to insert data in ROUTINE table
+                 */
+
                 String dir = "http://" + IP + ":5000/routine/create";
                 HttpURLConnection urlConnection = null;
 
@@ -453,6 +496,11 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "loadRoutines": {
+
+                /*
+                 *  HTTP Request to retrieve data from ROUTINE table
+                 */
+
                 String dir = "http://" + IP + ":5000/routine";
                 HttpURLConnection urlConnection = null;
 
@@ -511,6 +559,11 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "removeRoutine": {
+
+                /*
+                 *  HTTP Request to remove data from ROUTINE table
+                 */
+
                 String dir = "http://" + IP + ":5000/routine";
                 HttpURLConnection urlConnection = null;
 
@@ -557,6 +610,11 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "removeRoutineEx": {
+
+                /*
+                 *  HTTP Request to delete data from ROUTINE_EXERCISE table
+                 */
+
                 String dir = "http://" + IP + ":5000/routine-ex";
                 HttpURLConnection urlConnection = null;
 
@@ -606,6 +664,11 @@ public class ExternalDB extends Worker {
                 break;
             }
             case "insertEjRoutine": {
+
+                /*
+                 *  HTTP Request to insert data in ROUTINE_EXERCISE table
+                 */
+
                 String dir = "http://" + IP + ":5000/routine-ex/create";
                 HttpURLConnection urlConnection = null;
 
@@ -633,52 +696,6 @@ public class ExternalDB extends Worker {
                         BufferedReader bufferedReader =
                                 new BufferedReader(new InputStreamReader(inputStream,
                                         "UTF-8"));
-                        String line;
-                        StringBuilder result = new StringBuilder();
-                        while ((line = bufferedReader.readLine()) != null) {
-                            result.append(line);
-                        }
-                        inputStream.close();
-
-                        JSONParser parser = new JSONParser();
-                        JSONObject json = (JSONObject) parser.parse(result.toString());
-
-                        Boolean success = (Boolean) json.get("success");
-                        Data.Builder b = new Data.Builder();
-                        return Result.success(b.putBoolean("success", success).build());
-                    }
-                } catch (Exception e) {
-                    Log.e("EXCEPTION", "doWork: ", e);
-                    return Result.failure();
-                }
-                break;
-            }
-            case "saveImage": {
-                String dir = "http://" + IP + ":5000/image/create";
-                HttpURLConnection urlConnection = null;
-
-                String mail = getInputData().getString("mail");
-                String image = getInputData().getString("image");
-                byte[] imageBytes = image.getBytes();
-                Integer exID = Integer.parseInt(getInputData().getString("exID"));
-                try {
-                    URL dest = new URL(dir);
-                    urlConnection = (HttpURLConnection) dest.openConnection();
-                    urlConnection.setConnectTimeout(5000);
-                    urlConnection.setReadTimeout(5000);
-                    urlConnection.setRequestMethod("POST");
-                    urlConnection.setRequestProperty("Content-Type", "application/json");
-                    JSONObject paramJson = new JSONObject();
-                    paramJson.put("mail", mail);
-                    paramJson.put("image", imageBytes);
-                    paramJson.put("ex_id", exID);
-                    PrintWriter out = new PrintWriter(urlConnection.getOutputStream());
-                    out.print(paramJson);
-                    out.close();
-                    int statusCode = urlConnection.getResponseCode();
-                    if (statusCode == 200) {
-                        BufferedInputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
                         String line;
                         StringBuilder result = new StringBuilder();
                         while ((line = bufferedReader.readLine()) != null) {

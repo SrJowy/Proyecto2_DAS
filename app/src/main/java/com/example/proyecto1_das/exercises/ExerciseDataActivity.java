@@ -17,8 +17,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.example.proyecto1_das.MainActivity;
-import com.example.proyecto1_das.OptionsActivity;
+import com.example.proyecto1_das.user.MainActivity;
+import com.example.proyecto1_das.preferences.OptionsActivity;
 import com.example.proyecto1_das.R;
 import com.example.proyecto1_das.calendar.CalendarActivity;
 import com.example.proyecto1_das.exercises.fragments.ExerciseDataFragment;
@@ -91,6 +91,7 @@ public class ExerciseDataActivity extends AppCompatActivity implements
         return super.onOptionsItemSelected(item);
     }
 
+    // Manage the option selected in the hamburger menu
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         if (R.id.nav_settings == item.getItemId()) {

@@ -7,7 +7,7 @@
     android:backgroundTint="?attr/colorBackgroundFloating"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
+    tools:context=".user.MainActivity"
     tools:ignore="HardcodedText">
 
     <com.google.android.material.navigation.NavigationView

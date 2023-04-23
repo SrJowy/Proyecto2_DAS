@@ -7,12 +7,14 @@ import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
 import com.example.proyecto1_das.R;
 
+/*
+ *  This class is executed after clicking on an element of the list in GymFinderActivity
+ */
 public class GymNotification extends BroadcastReceiver {
 
     private static final String CHANNEL_ID = "pock_rout";

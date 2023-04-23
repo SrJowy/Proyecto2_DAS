@@ -29,13 +29,12 @@ import com.example.proyecto1_das.dialog.MessageDialog;
 import com.example.proyecto1_das.utils.LocaleUtils;
 import com.example.proyecto1_das.utils.ThemeUtils;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;;
+import com.google.android.gms.location.LocationServices;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -58,17 +57,19 @@ public class GymFinderActivity extends AppCompatActivity {
                 == PackageManager.PERMISSION_GRANTED) {
             FusedLocationProviderClient provider =
                     LocationServices.getFusedLocationProviderClient(this);
-
+            // Ask for user's location
             provider.getLastLocation()
                     .addOnSuccessListener(this, location -> {
                         if (location != null) {
                             String locationS = String.format(location.getLatitude() + "," + location.getLongitude());
-                            String radius = "1500"; // 5 km
+                            String radius = "1500"; // 1.5 km
                             String type = "gym";
                             String url = String.format("https://maps.googleapis.com/maps/api/place/nearbysearch/json?keyword=%s&location=%s&radius=%s&type=%s&key=%s", type, locationS, radius, type, API_KEY);
                             final RequestQueue queue = Volley.newRequestQueue(this);
+                            // HTTP Post request to get JSON with all gym locations in a 1.5 km
                             JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
                                     response -> {
+                                        // Parse JSON data
                                         try {
                                             JSONArray jsonA = response.getJSONArray(
                                                         "results");
@@ -81,6 +82,8 @@ public class GymFinderActivity extends AppCompatActivity {
                                                 String data = gymName + " | " + gymStreet + " (" + rate + "/5)";
                                                 gyms.add(data);
                                             }
+
+                                            // Find list view and set the data
                                             ListView lv = findViewById(R.id.list_gyms);
                                             ArrayAdapter<String> adapter =
                                                     new ArrayAdapter<>(this,
@@ -88,18 +91,19 @@ public class GymFinderActivity extends AppCompatActivity {
                                             lv.setAdapter(adapter);
                                             lv.setOnItemClickListener((parent, view, position, id) -> {
                                                 Calendar calendar = Calendar.getInstance();
+                                                // Set the time when the notification will be delivered
                                                 calendar.setTimeInMillis(System.currentTimeMillis() + NOTIFICATION_DELAY);
                                                 Intent intent = new Intent(this, GymNotification.class);
                                                 intent.putExtra("gymName", ((TextView) view).getText()
                                                         .toString().split(" \\| ")[0]);
-
+                                                // Create the pending intent to push the notification
                                                 PendingIntent pendingIntent;
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                                                     pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_MUTABLE);
                                                 } else {
-                                                    pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+                                                    pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
                                                 }
-
+                                                // Set the alarm to execute the code in 20 seconds
                                                 AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
                                                 if (alarmManager != null) {
                                                     alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);

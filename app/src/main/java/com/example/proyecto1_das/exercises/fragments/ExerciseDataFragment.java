@@ -11,7 +11,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
@@ -26,10 +25,9 @@ import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.proyecto1_das.PhotoActivity;
+import com.example.proyecto1_das.exercises.PhotoActivity;
 import com.example.proyecto1_das.R;
 import com.example.proyecto1_das.data.Exercise;
 import com.example.proyecto1_das.db.ExternalDB;
@@ -119,6 +117,8 @@ public class ExerciseDataFragment extends Fragment {
                             startActivity(intent);
                         });
 
+                        // When clicking this button it asks for permissions and starts
+                        // PhotoActivity
                         Button photoButton = getView().findViewById(R.id.save_foto);
                         photoButton.setOnClickListener(c -> {
                             if (ContextCompat.checkSelfPermission(getContext(), CAMERA) !=
@@ -213,6 +213,8 @@ public class ExerciseDataFragment extends Fragment {
                             startActivity(intent);
                         });
 
+                        // When clicking this button it asks for permissions and starts
+                        // PhotoActivity
                         Button photoButton = getView().findViewById(R.id.save_foto);
                         photoButton.setOnClickListener(c -> {
                             if (ContextCompat.checkSelfPermission(getContext(), CAMERA) !=
@@ -229,9 +231,7 @@ public class ExerciseDataFragment extends Fragment {
                         setImage(exID);
                     }
 
-                }, error -> {
-                    Log.e("EDF", "onCreate: ", error);
-                });
+                }, error -> Log.e("EDF", "onCreate: ", error));
 
         RequestQueue queue = Volley.newRequestQueue(getContext());
         queue.add(request);

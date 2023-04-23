@@ -2,20 +2,17 @@ package com.example.proyecto1_das.dialog;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
-import com.example.proyecto1_das.R;
-
 public class MessageDialog extends DialogFragment {
 
-    private String title;
+    private final String title;
 
-    private String message;
+    private final String message;
 
     public MessageDialog(String title, String message) {
         this.title = title;
@@ -30,9 +27,7 @@ public class MessageDialog extends DialogFragment {
         builder.setTitle(title);
         builder.setMessage(message);
 
-        builder.setPositiveButton("OK", (dialogInterface, i) -> {
-            dismiss();
-        });
+        builder.setPositiveButton("OK", (dialogInterface, i) -> dismiss());
 
         return builder.create();
     }

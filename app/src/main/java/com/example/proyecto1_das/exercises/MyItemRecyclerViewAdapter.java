@@ -5,7 +5,6 @@ import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
-import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
@@ -22,7 +21,7 @@ public class MyItemRecyclerViewAdapter extends RecyclerView.Adapter<MyViewHolder
 
     private static boolean[] selected;
     private final List<Exercise> mValues;
-    private Context context;
+    private final Context context;
 
     public MyItemRecyclerViewAdapter(List<Exercise> items, Context context) {
         selected = new boolean[items.size()];

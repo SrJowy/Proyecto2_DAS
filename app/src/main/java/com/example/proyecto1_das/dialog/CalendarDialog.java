@@ -18,6 +18,9 @@ import com.example.proyecto1_das.data.Routine;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+ *  Dialog to show the user his routines
+ */
 public class CalendarDialog extends DialogFragment {
 
     public interface DialogListener {

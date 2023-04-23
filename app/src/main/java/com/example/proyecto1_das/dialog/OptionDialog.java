@@ -29,8 +29,7 @@ public class OptionDialog extends DialogFragment {
     private final int optionId;
     private final boolean hasChoices;
     private final String[] args;
-
-    private View v;
+    private final View v;
 
     public OptionDialog(String title, CharSequence[] elements, int optionId,
                         boolean hasChoices, String[] args, View v) {
@@ -63,6 +62,7 @@ public class OptionDialog extends DialogFragment {
             builder.setItems(elements, (dialogInterface, i) -> {
                 if (optionId == 0) {
                     if (i == 0) {
+                        // Removes routine from the database
                         String[] keys =  new String[3];
                         Object[] params = new String[3];
                         keys[0] = "param";
@@ -93,6 +93,7 @@ public class OptionDialog extends DialogFragment {
                     }
                 } else if (optionId == 2) {
                     if (i == 0) {
+                        // Removes data from ROUTINE_EXERCISE table
                         String[] keys =  new String[3];
                         Object[] params = new String[3];
                         keys[0] = "param";
@@ -102,8 +103,11 @@ public class OptionDialog extends DialogFragment {
                         params[1] = args[0];
                         params[2] = args[1];
                         Data param = ExternalDB.createParam(keys, params);
-                        OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
-                        WorkManager.getInstance(getContext()).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+                        OneTimeWorkRequest oneTimeWorkRequest =
+                                new OneTimeWorkRequest.Builder(ExternalDB.class)
+                                        .setInputData(param).build();
+                        WorkManager.getInstance(getContext())
+                                .getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
                                 .observe(this, workInfo -> {
                                     if (workInfo != null && workInfo.getState().isFinished()) {
                                         if (workInfo.getState() != WorkInfo.State.SUCCEEDED) {

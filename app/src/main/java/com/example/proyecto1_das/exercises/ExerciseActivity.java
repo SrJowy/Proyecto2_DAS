@@ -23,16 +23,14 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.proyecto1_das.MainActivity;
-import com.example.proyecto1_das.OptionsActivity;
+import com.example.proyecto1_das.user.MainActivity;
+import com.example.proyecto1_das.preferences.OptionsActivity;
 import com.example.proyecto1_das.R;
 import com.example.proyecto1_das.calendar.CalendarActivity;
 import com.example.proyecto1_das.data.Exercise;
@@ -93,7 +91,7 @@ public class ExerciseActivity extends AppCompatActivity implements
             }
 
             JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, requestBody,
-                    (Response.Listener<JSONObject>) response -> {
+                    response -> {
                         Log.i("EA", "onCreate: " + response);
 
                         List<Exercise> lExercises = transformJson(response);
@@ -103,9 +101,7 @@ public class ExerciseActivity extends AppCompatActivity implements
                                 .replace(R.id.fragmentContainerView, eFrag)
                                 .commit();
 
-                    }, (Response.ErrorListener) error -> {
-                        Log.e("EA", "onCreate: ", error);
-                    });
+                    }, error -> Log.e("EA", "onCreate: ", error));
 
             RequestQueue queue = Volley.newRequestQueue(this);
             queue.add(request);
@@ -188,7 +184,6 @@ public class ExerciseActivity extends AppCompatActivity implements
     }
 
     private void reloadFragment() {
-        Log.i("TAG", "reloadFragment: entra por aqui");
         String lang = LocaleUtils.getLanguage(this);
 
         FileUtils fileUtils = new FileUtils();
@@ -216,9 +211,7 @@ public class ExerciseActivity extends AppCompatActivity implements
                             .replace(R.id.fragmentContainerView, eFrag)
                             .commit();
 
-                }, (Response.ErrorListener) error -> {
-            Log.e("EA", "onCreate: ", error);
-        });
+                }, error -> Log.e("EA", "onCreate: ", error));
 
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(request);
@@ -264,6 +257,7 @@ public class ExerciseActivity extends AppCompatActivity implements
         return super.onOptionsItemSelected(item);
     }
 
+    // Manage the option selected in the hamburger menu
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         if (R.id.nav_settings == item.getItemId()) {

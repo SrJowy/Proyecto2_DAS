@@ -1,4 +1,4 @@
-package com.example.proyecto1_das;
+package com.example.proyecto1_das.preferences;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
@@ -17,12 +17,16 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.example.proyecto1_das.user.MainActivity;
+import com.example.proyecto1_das.R;
 import com.example.proyecto1_das.calendar.CalendarActivity;
 import com.example.proyecto1_das.gym.GymFinderActivity;
-import com.example.proyecto1_das.preferences.Preferences;
+import com.example.proyecto1_das.routines.RoutineActivity;
 import com.example.proyecto1_das.utils.LocaleUtils;
 import com.example.proyecto1_das.utils.ThemeUtils;
 import com.google.android.material.navigation.NavigationView;
+
+import java.util.Objects;
 
 public class OptionsActivity extends AppCompatActivity implements
         Preferences.PrefListener, NavigationView.OnNavigationItemSelectedListener {
@@ -49,7 +53,7 @@ public class OptionsActivity extends AppCompatActivity implements
         d.addDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
         NavigationView n = findViewById(R.id.nav_menu);
         n.bringToFront();

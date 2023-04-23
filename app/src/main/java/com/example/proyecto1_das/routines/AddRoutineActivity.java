@@ -1,4 +1,4 @@
-package com.example.proyecto1_das;
+package com.example.proyecto1_das.routines;
 
 import android.os.Bundle;
 import android.widget.Button;
@@ -10,6 +10,7 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
+import com.example.proyecto1_das.R;
 import com.example.proyecto1_das.db.ExternalDB;
 import com.example.proyecto1_das.dialog.MessageDialog;
 import com.example.proyecto1_das.utils.FileUtils;
@@ -37,7 +38,7 @@ public class AddRoutineActivity extends AppCompatActivity {
             EditText etDesc = findViewById(R.id.etRoutineDesc);
             String rDesc = etDesc.getText().toString();
 
-            if (!rName.isEmpty() && !rName.isBlank()) {
+            if (!rDesc.isBlank() && !rName.isBlank()) {
                 String[] keys =  new String[4];
                 Object[] params = new String[4];
                 keys[0] = "param";
@@ -49,17 +50,31 @@ public class AddRoutineActivity extends AppCompatActivity {
                 params[2] = rName;
                 params[3] = rDesc;
                 Data param = ExternalDB.createParam(keys, params);
-                OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
-                WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+                OneTimeWorkRequest oneTimeWorkRequest =
+                        new OneTimeWorkRequest.Builder(ExternalDB.class).
+                                setInputData(param).build();
+                WorkManager.getInstance(this)
+                        .getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
                         .observe(this, workInfo -> {
                             if (workInfo != null && workInfo.getState().isFinished()) {
                                 if (workInfo.getState() != WorkInfo.State.SUCCEEDED) {
                                     MessageDialog d = new MessageDialog("ERROR",
                                             getString(R.string.error_server));
-                                    d.show(getSupportFragmentManager(), "errorDialog");
+                                    d.show(getSupportFragmentManager(),
+                                            "errorDialog");
                                 } else {
-                                    setResult(RESULT_OK);
-                                    finish();
+                                    boolean success = workInfo.getOutputData()
+                                            .getBoolean("success", true);
+                                    if (success) {
+                                        setResult(RESULT_OK);
+                                        finish();
+                                    } else {
+                                        String message = getString(R.string.val_error);
+                                        MessageDialog d =
+                                                new MessageDialog("ERROR", message);
+                                        d.show(getSupportFragmentManager(),
+                                                "errorDialog");
+                                    }
                                 }
 
                             }

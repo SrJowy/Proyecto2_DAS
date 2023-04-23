@@ -1,4 +1,4 @@
-package com.example.proyecto1_das;
+package com.example.proyecto1_das.user;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +12,7 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
+import com.example.proyecto1_das.R;
 import com.example.proyecto1_das.db.ExternalDB;
 import com.example.proyecto1_das.dialog.MessageDialog;
 import com.example.proyecto1_das.utils.LocaleUtils;
@@ -47,6 +48,7 @@ public class RegisterActivity extends AppCompatActivity {
             String repeatPass = etRepPassword.getText().toString();
 
             try {
+                // Validate the introduced data
                 ValidationUtils.validateUsr(new String[]{name, surname, mail, password,
                         repeatPass});
 
@@ -57,23 +59,33 @@ public class RegisterActivity extends AppCompatActivity {
                 params[0] = "userExists";
                 params[1] = mail;
                 Data param = ExternalDB.createParam(keys, params);
-                OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
-                WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+                OneTimeWorkRequest oneTimeWorkRequest =
+                        new OneTimeWorkRequest.Builder(ExternalDB.class)
+                                .setInputData(param).build();
+                WorkManager.getInstance(this)
+                        .getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
                         .observe(this, workInfo -> {
                             if (workInfo != null && workInfo.getState().isFinished()) {
-                                int count = workInfo.getOutputData().getInt("len", 0);
+                                int count = workInfo.getOutputData()
+                                        .getInt("len", 0);
+                                // Check if the user exists
                                 if (count == 1) {
-                                    MessageDialog d = new MessageDialog("ERROR", getString(R.string.msg_user_exists));
-                                    d.show(getSupportFragmentManager(), "errorDialog");
+                                    MessageDialog d = new MessageDialog("ERROR",
+                                            getString(R.string.msg_user_exists));
+                                    d.show(getSupportFragmentManager(),
+                                            "errorDialog");
                                 } else {
+                                    // Get the device Firebase token
                                     FirebaseMessaging.getInstance().getToken()
                                             .addOnCompleteListener(task -> {
                                                 if (!task.isSuccessful()) {
-                                                    Log.e("ERR_TOKEN", "onCreate", task.getException());
+                                                    Log.e("ERR_TOKEN", "onCreate"
+                                                            , task.getException());
                                                     return;
                                                 }
                                                 String token = task.getResult();
-                                                this.saveUser(mail, password, name, surname, token);
+                                                this.saveUser(mail, password, name,
+                                                        surname, token);
                                                 finish();
                                             });
                                 }
@@ -81,6 +93,7 @@ public class RegisterActivity extends AppCompatActivity {
                         });
                 WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
             } catch (Exception e) {
+                // Catch whatever the error might be when validating data
                 String message = "";
                 if ("usr".equals(e.getMessage())) {
                     message = getString(R.string.usr_msg);
@@ -99,6 +112,9 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
 
+    /*
+     * Insert the user into the database values
+     */
     private void saveUser(String mail, String password, String name, String surname,
                           String token) {
         String[] keys =  new String[6];

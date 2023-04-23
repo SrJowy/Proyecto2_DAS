@@ -14,7 +14,6 @@ import androidx.work.WorkManager;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.proyecto1_das.R;
@@ -70,9 +69,7 @@ public class AddExerciseActivity extends AppCompatActivity {
                     Log.i("AEA", "onCreate: " + lExercises.size());
                     checkExercisesInRoutine(rName, lang, lExercises);
 
-                }, error -> {
-                    Log.e("AEA", "onCreate: ", error);
-                });
+                }, error -> Log.e("AEA", "onCreate: ", error));
 
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(request);
@@ -101,6 +98,9 @@ public class AddExerciseActivity extends AppCompatActivity {
         return lEx;
     }
 
+    /*
+     * Check if a routine has exercises
+     */
     private void checkExercisesInRoutine(String rName, String lang,
                                                    List<Exercise> lExercises) {
         FileUtils fileUtils = new FileUtils();
@@ -138,7 +138,8 @@ public class AddExerciseActivity extends AppCompatActivity {
 
                     ListView lv = findViewById(R.id.exList);
                     ArrayAdapter<String> adapter =
-                            new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, lEx);
+                            new ArrayAdapter<>(this,
+                                    android.R.layout.simple_list_item_1, lEx);
                     lv.setAdapter(adapter);
                     lv.setOnItemClickListener((adapterView, view, i, l) -> {
                         if (!selectedEx[i]) {
@@ -165,15 +166,16 @@ public class AddExerciseActivity extends AppCompatActivity {
                         }
                     });
 
-                }, error -> {
-                    Log.e("AEA", "onCreate: ", error);
-                });
+                }, error -> Log.e("AEA", "onCreate: ", error));
 
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(request);
 
     }
 
+    /*
+     * Inserts data into ROUTINE_EXERCISE table
+     */
     public void insertEjRoutine(String rName, String mail, Integer exID) {
         String[] keys =  new String[4];
         Object[] params = new String[4];
@@ -186,8 +188,11 @@ public class AddExerciseActivity extends AppCompatActivity {
         params[2] = rName;
         params[3] = exID.toString();
         Data param = ExternalDB.createParam(keys, params);
-        OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
-        WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+        OneTimeWorkRequest oneTimeWorkRequest =
+                new OneTimeWorkRequest.Builder(ExternalDB.class)
+                        .setInputData(param).build();
+        WorkManager.getInstance(this)
+                .getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
                 .observe(this, workInfo -> {
                     if (workInfo != null && workInfo.getState().isFinished()) {
                         if (workInfo.getState() != WorkInfo.State.SUCCEEDED) {

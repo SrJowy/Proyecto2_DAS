@@ -1,33 +1,24 @@
 package com.example.proyecto1_das.widget;
 
-import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
-import android.content.Intent;
 import android.util.Log;
 import android.widget.RemoteViews;
-import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.proyecto1_das.R;
-import com.example.proyecto1_das.data.Exercise;
 import com.example.proyecto1_das.db.ExternalDB;
-import com.example.proyecto1_das.exercises.fragments.ExerciseFragment;
 import com.example.proyecto1_das.utils.FileUtils;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.List;
 
 /*
  * Implements the functionality associated to the Widget of the app
@@ -79,9 +70,7 @@ public class TodayRoutineWidget extends AppWidgetProvider {
                         Log.e("TRW", "updateAppWidget: ", e);
                     }
 
-                }, error -> {
-            Log.e("TRW", "onCreate: ", error);
-        });
+                }, error -> Log.e("TRW", "onCreate: ", error));
 
         RequestQueue queue = Volley.newRequestQueue(context);
         queue.add(request);

@@ -1,6 +1,5 @@
 package com.example.proyecto1_das.calendar;
 
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -10,6 +9,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyecto1_das.R;
 
+/*
+ * Code extracted and adapted from StackOverflow (User: callumhilldeveloper)
+ * https://github.com/codeWithCal/CalendarTutorialAndroidStudio
+ */
 public class CalendarViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
     public final TextView dayOfMonth;
     private final CalendarAdapter.OnItemListener onItemListener;

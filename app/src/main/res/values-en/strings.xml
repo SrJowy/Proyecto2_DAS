@@ -22,7 +22,7 @@
     <string name="routine_name">Routine name</string>
     <string name="routine_des">Rotuine description</string>
     <string name="save">Save</string>
-    <string name="val_error">Invalid name</string>
+    <string name="val_error">Invalid name or description</string>
     <string name="do_action_menu">Action menu</string>
     <string name="remove">Remove</string>
     <string name="exit">EXIT</string>

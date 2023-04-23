@@ -45,10 +45,10 @@
             android:name=".gym.GymFinderActivity"
             android:exported="false" />
         <activity
-            android:name=".PhotoActivity"
+            android:name=".exercises.PhotoActivity"
             android:exported="false" />
         <activity
-            android:name=".RegisterActivity"
+            android:name=".user.RegisterActivity"
             android:exported="false" />
         <activity
             android:name=".calendar.CalendarActivity"
@@ -57,10 +57,10 @@
             android:name=".exercises.AddExerciseActivity"
             android:exported="false" />
         <activity
-            android:name=".AddRoutineActivity"
+            android:name=".routines.AddRoutineActivity"
             android:exported="false" />
         <activity
-            android:name=".OptionsActivity"
+            android:name=".preferences.OptionsActivity"
             android:exported="false" />
         <activity
             android:name=".exercises.ExerciseDataActivity"
@@ -69,10 +69,10 @@
             android:name=".exercises.ExerciseActivity"
             android:exported="false" />
         <activity
-            android:name=".RoutineActivity"
+            android:name=".routines.RoutineActivity"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".user.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

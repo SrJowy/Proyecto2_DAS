@@ -1,4 +1,4 @@
-package com.example.proyecto1_das;
+package com.example.proyecto1_das.user;
 
 import static android.Manifest.permission.POST_NOTIFICATIONS;
 
@@ -19,8 +19,10 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
+import com.example.proyecto1_das.R;
 import com.example.proyecto1_das.db.ExternalDB;
 import com.example.proyecto1_das.dialog.MessageDialog;
+import com.example.proyecto1_das.routines.RoutineActivity;
 import com.example.proyecto1_das.utils.FileUtils;
 import com.example.proyecto1_das.utils.LocaleUtils;
 import com.example.proyecto1_das.utils.ThemeUtils;
@@ -62,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
         LocaleUtils.initialize(getBaseContext());
         setContentView(R.layout.activity_main);
 
+        // Check if the user exist in db and sign him in
         Button bSignIn = findViewById(R.id.button);
         bSignIn.setOnClickListener(c -> {
             EditText etMail = findViewById(R.id.editTextMail);
@@ -78,17 +81,23 @@ public class MainActivity extends AppCompatActivity {
             params[1] = mail;
             params[2] = password;
             Data param = ExternalDB.createParam(keys, params);
-            OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(ExternalDB.class).setInputData(param).build();
-            WorkManager.getInstance(this).getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+            OneTimeWorkRequest oneTimeWorkRequest =
+                    new OneTimeWorkRequest.Builder(ExternalDB.class)
+                            .setInputData(param).build();
+            WorkManager.getInstance(this)
+                    .getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
                     .observe(this, workInfo -> {
                         if (workInfo != null && workInfo.getState().isFinished()) {
                             if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
-                                boolean success = workInfo.getOutputData().getBoolean("success", false);
+                                boolean success = workInfo.getOutputData()
+                                        .getBoolean("success", false);
 
                                 if (success) {
+                                    // Stores the user's e-mail in "config.txt" file
                                     saveSession(mail);
 
-                                    Intent i = new Intent(this, RoutineActivity.class);
+                                    Intent i = new Intent(this,
+                                            RoutineActivity.class);
                                     i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK |
                                             Intent.FLAG_ACTIVITY_NEW_TASK);
                                     startActivity(i);
