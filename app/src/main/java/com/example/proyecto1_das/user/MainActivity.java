@@ -26,6 +26,7 @@ import com.example.proyecto1_das.routines.RoutineActivity;
 import com.example.proyecto1_das.utils.FileUtils;
 import com.example.proyecto1_das.utils.LocaleUtils;
 import com.example.proyecto1_das.utils.ThemeUtils;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -72,49 +73,15 @@ public class MainActivity extends AppCompatActivity {
             EditText etPassword = findViewById(R.id.editTextPassword);
             String password = etPassword.getText().toString();
 
-            String[] keys =  new String[3];
-            Object[] params = new String[3];
-            keys[0] = "param";
-            keys[1] = "mail";
-            keys[2] =  "pass";
-            params[0] = "signIn";
-            params[1] = mail;
-            params[2] = password;
-            Data param = ExternalDB.createParam(keys, params);
-            OneTimeWorkRequest oneTimeWorkRequest =
-                    new OneTimeWorkRequest.Builder(ExternalDB.class)
-                            .setInputData(param).build();
-            WorkManager.getInstance(this)
-                    .getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
-                    .observe(this, workInfo -> {
-                        if (workInfo != null && workInfo.getState().isFinished()) {
-                            if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
-                                boolean success = workInfo.getOutputData()
-                                        .getBoolean("success", false);
-
-                                if (success) {
-                                    // Stores the user's e-mail in "config.txt" file
-                                    saveSession(mail);
-
-                                    Intent i = new Intent(this,
-                                            RoutineActivity.class);
-                                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK |
-                                            Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    startActivity(i);
-                                } else {
-                                    MessageDialog d = new MessageDialog("ERROR",
-                                            getString(R.string.msg_sign_in));
-                                    d.show(getSupportFragmentManager(), "errorDialog");
-                                }
-                            } else {
-                                MessageDialog d = new MessageDialog("ERROR",
-                                        getString(R.string.error_server));
-                                d.show(getSupportFragmentManager(), "errorDialog");
-                            }
-
+            FirebaseMessaging.getInstance().getToken()
+                    .addOnCompleteListener(task -> {
+                        if (!task.isSuccessful()) {
+                            Log.e("ERR_TOKEN", "onCreate", task.getException());
+                        } else {
+                            String token = task.getResult();
+                            signIn(mail, password, token);
                         }
                     });
-            WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
 
         });
 
@@ -125,6 +92,55 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+
+    private void signIn(String mail, String password, String token) {
+        String[] keys =  new String[4];
+        Object[] params = new String[4];
+        keys[0] = "param";
+        keys[1] = "mail";
+        keys[2] =  "pass";
+        keys[3] = "token";
+        params[0] = "signIn";
+        params[1] = mail;
+        params[2] = password;
+        params[3] = token;
+        Data param = ExternalDB.createParam(keys, params);
+        OneTimeWorkRequest oneTimeWorkRequest =
+                new OneTimeWorkRequest.Builder(ExternalDB.class)
+                        .setInputData(param).build();
+        WorkManager.getInstance(this)
+                .getWorkInfoByIdLiveData(oneTimeWorkRequest.getId())
+                .observe(this, workInfo -> {
+                    if (workInfo != null && workInfo.getState().isFinished()) {
+                        if (workInfo.getState() == WorkInfo.State.SUCCEEDED) {
+                            boolean success = workInfo.getOutputData()
+                                    .getBoolean("success", false);
+
+                            if (success) {
+                                // Stores the user's e-mail in "config.txt" file
+                                saveSession(mail);
+
+                                Intent i = new Intent(this,
+                                        RoutineActivity.class);
+                                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK |
+                                        Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(i);
+                            } else {
+                                MessageDialog d = new MessageDialog("ERROR",
+                                        getString(R.string.msg_sign_in));
+                                d.show(getSupportFragmentManager(), "errorDialog");
+                            }
+                        } else {
+                            MessageDialog d = new MessageDialog("ERROR",
+                                    getString(R.string.error_server));
+                            d.show(getSupportFragmentManager(), "errorDialog");
+                        }
+
+                    }
+                });
+        WorkManager.getInstance(this).enqueue(oneTimeWorkRequest);
+    }
+
     /*
      * Code extracted and adapted from StackOverflow (User: Iarsaars)
      * https://stackoverflow.com/questions/14376807/read-write-string-from-to-a-file-in-android

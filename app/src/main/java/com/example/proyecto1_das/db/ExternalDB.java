@@ -167,10 +167,13 @@ public class ExternalDB extends Worker {
 
                 String mail = getInputData().getString("mail");
                 String password = getInputData().getString("pass");
-                Log.i("MAIL", "doWork: " + mail + " " + password);
+                String token = getInputData().getString("token");
+
                 try {
-                    Uri.Builder builder = new Uri.Builder().appendQueryParameter("mail"
-                            , mail).appendQueryParameter("pass", password);
+                    Uri.Builder builder = new Uri.Builder()
+                            .appendQueryParameter("mail", mail)
+                            .appendQueryParameter("pass", password)
+                            .appendQueryParameter("token", token);
                     String params = builder.build().getEncodedQuery();
 
                     dir += "?" + params;
